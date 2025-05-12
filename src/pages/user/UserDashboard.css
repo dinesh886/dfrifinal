@@ -1,0 +1,341 @@
+/* Doctor Dashboard Styles */
+.doctor-dashboard {
+    padding: 1rem;
+    max-width: 1350px;
+    margin: 0 auto;
+}
+.doctor-table-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    /* margin: 20px 0; */
+    padding: 20px;
+}
+.dashboard-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+    color: #4a5568;
+    font-size: 1rem;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 1rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-badge.completed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.pending {
+    background-color: #dcfce7;
+        color: #166534;
+}
+
+.status-badge.scheduled {
+    background-color: #dcfce7;
+        color: #166534;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .doctor-dashboard {
+        padding: 1rem;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+}
+.edit-button {
+    padding: 5px 4px;
+    /* background-color: #4CAF50; */
+    color: var(--sidebar-active);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+/* UserDashboard.css */
+.follow-up-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.follow-up-status {
+    padding: 4px 8px;
+    display: inline-block;
+        /* ✅ This makes width apply */
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: 163px !important;
+}
+.edit-btn {
+    background-color: #dcfce7;
+    color: #166534;
+    /* border: 1px solid #91d5ff; */
+    text-align: center;
+    cursor: pointer;
+}
+.follow-up-status.completed {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+   
+    text-align: center;
+    cursor: pointer;
+}
+
+.follow-up-status.update-due {
+background-color: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+
+    text-align: center;
+    cursor: pointer;
+}
+.follow-up-status.due {
+    background-color: #fff1f0;
+    color: #f5222d;
+    border: 1px solid #ffa39e;
+    text-align: center;
+        cursor: pointer;
+}
+
+.follow-up-status.pending {
+    background-color: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+    text-align: center;
+        cursor: pointer;
+}
+
+.last-followup {
+    margin-right: 16px;
+    color: #666;
+    font-size: 0.875rem;
+}
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* Base Button Styles */
+.follow-up-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    min-width: 100px;
+}
+
+/* Button Content */
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-text {
+    margin-top: 1px;
+}
+
+/* Add Button Styles */
+.add-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #2563eb;
+}
+
+.add-btn:active {
+    background-color: #1d4ed8;
+}
+
+/* Update Button Styles */
+.update-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.update-btn:hover {
+    background-color: #059669;
+}
+
+.update-btn:active {
+    background-color: #047857;
+}
+
+/* Disabled Button Styles */
+.disabled-btn {
+    background-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Icon Styles */
+.follow-up-action-btn svg {
+    stroke-width: 2.5;
+}
+/* Add these styles to your existing UserDashboard.css file */
+
+.follow-up-action-btn.view-btn {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin-left: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.follow-up-action-btn.view-btn:hover {
+    background-color: #1976d2;
+}
+
+.follow-up-action-btn.view-btn .btn-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Make sure the action buttons container can fit multiple buttons */
+.action-buttons {
+    display: flex;
+    /* flex-wrap: wrap; */
+    gap: 8px;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .follow-up-action-btn.view-btn {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -80px;
+    /* Center the tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-container:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+.edit-countdown {
+    font-size: 0.7rem;
+    color: red;
+    margin-top: 2px;
+    text-align: center;
+}
+
+.expired-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #999;
+    padding: 6px 8px;
+    border-radius: 4px;
+}
+
+.expired-indicator svg {
+    color: #ccc;
+}
+
+.expired-text {
+    font-size: 0.8rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
