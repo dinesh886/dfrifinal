@@ -101,7 +101,8 @@ const StepForm = () => {
       debridementWithAmputation: "",
       deathDate: "",
       deathReason: "",
-      woundReferenceFile: null,
+woundReferenceFile: null,  // Make sure this exists
+  woundReferenceFilePreview: null,
     },
     section3: {
       burningSensation: "",
@@ -261,55 +262,56 @@ const StepForm = () => {
 
   // Define required fields for each step
   const requiredFields = {
-    1: [
-      "patient_name",
-      "age",
-      "gender",
-      "locality",
-      "facilityName",
-      "facilityLocation",
-      "facilityType",
-      "education",
-      "occupation",
-      "maritalStatus",
-      "monthlyIncome",
-      "familyMembers",
-      "dependents",
-      "diabetesType",
-      "diabetesDuration",
-    ],
-    2: [
-      "firstAssessment",
-      "attendedBefore",
-      ...(formData.section2.attendedBefore === "Yes"
-        ? ["facilityVisited", "intervalToAssessment", "referredBy", "treatedDays", "referredInDays", "visitedInDays"]
-        : []),
-      "necrosis",
-      ...(formData.section2.necrosis === "Yes" ? ["necrosisPhoto"] : []),
-      "gangrene",
-      ...(formData.section2.gangrene === "Yes" ? ["gangreneType"] : []),
-      "boneExposure",
-      "osteomyelitis",
-      "sepsis",
-      "arterialIssues",
-      "infection",
-      "swelling",
-      "erythema",
-      "tenderness",
-      "warmth",
-      "woundSize",
-      "woundLocation",
-      "woundDuration",
-      "woundClassification",
-      "socGiven",
-      ...(formData.section2.socGiven === "Yes" ? ["socDetails"] : []),
-      "dressingMaterial",
-      "offloadingDevice",
-      "hospitalization",
-      "amputation",
-      ...(formData.section2.amputation === "Major" ? ["amputationLevel"] : []),
-      "debridementWithAmputation",
-    ],
+  1: [
+    "patient_name",
+    "age",
+    "gender",
+    "locality",
+    "facilityName",
+    "facilityLocation",
+    "facilityType",
+    "education",
+    "occupation",
+    "maritalStatus",
+    "monthlyIncome",
+    "familyMembers",
+    "dependents",
+    "diabetesType",
+    "diabetesDuration",
+  ],
+  2: [
+    "firstAssessment",
+    "attendedBefore",
+    ...(formData.section2.attendedBefore === "Yes"
+      ? ["facilityVisited", "intervalToAssessment", "referredBy", "treatedDays", "referredInDays", "visitedInDays"]
+      : []),
+    "necrosis",
+    ...(formData.section2.necrosis === "Yes" ? ["necrosisPhoto"] : []),
+    "gangrene",
+    ...(formData.section2.gangrene === "Yes" ? ["gangreneType"] : []),
+    "boneExposure",
+    "osteomyelitis",
+    "sepsis",
+    "arterialIssues",
+    "infection",
+    "swelling",
+    "erythema",
+    "tenderness",
+    "warmth",
+    "woundSize",
+    "woundLocation",
+    "woundDuration",
+    "woundClassification",
+    "socGiven",
+    ...(formData.section2.socGiven === "Yes" ? ["socDetails"] : []),
+    "dressingMaterial",
+    "offloadingDevice",
+    "hospitalization",
+    "amputation",
+    ...(formData.section2.amputation === "Major" ? ["amputationLevel"] : []),
+    "debridementWithAmputation",
+   'woundReferenceFile'
+  ],
     3: [
       "burningSensation",
       "painWhileWalking",
@@ -385,41 +387,48 @@ const StepForm = () => {
     return isValid;
   };
   // Validate current step
-  const validateCurrentStep = () => {
-    const currentStepFields = requiredFields[step];
-    const newErrors = {};
-    let isValid = true;
+  // In StepForm.jsx, update the validateCurrentStep function
+const validateCurrentStep = () => {
+  const currentStepFields = requiredFields[step];
+  const newErrors = {};
+  let isValid = true;
 
-    if (step === 1) {
-      const consentValid = validateConsentForm();
-      if (!consentValid) isValid = false;
-    }
-
-    currentStepFields.forEach((field) => {
-      let fieldValue = "";
-      for (const section in formData) {
-        if (formData[section][field] !== undefined) {
-          fieldValue = formData[section][field];
-          break;
-        }
-      }
-
-      if (fieldValue === "" || fieldValue === null || fieldValue === undefined) {
-        newErrors[field] = "This field is required";
-        isValid = false;
-      }
-    });
-
-    if (step === 2 && !formData.section2.woundReferenceFile) {
+  // Special handling for step 2 file uploads
+  if (step === 2) {
+    if (!formData.section2.woundReferenceFile) {
       newErrors.woundReferenceFile = "Please upload a wound reference document or image";
       isValid = false;
     }
+    
+    // Only require necrosisPhoto if necrosis is "Yes"
+    if (formData.section2.necrosis === "Yes" && !formData.section2.necrosisPhoto) {
+      newErrors.necrosisPhoto = "Please upload a necrosis photo";
+      isValid = false;
+    }
+  }
 
-    console.log("Validation errors:", newErrors);
-    setErrors(newErrors);
-    return isValid;
-  };
+  // Validate all other fields
+  currentStepFields.forEach((field) => {
+    // Skip file fields we already validated
+    if (field === 'woundReferenceFile' || field === 'necrosisPhoto') return;
+    
+    let fieldValue = '';
+    for (const section in formData) {
+      if (formData[section][field] !== undefined) {
+        fieldValue = formData[section][field];
+        break;
+      }
+    }
 
+    if (fieldValue === "" || fieldValue === null || fieldValue === undefined) {
+      newErrors[field] = "This field is required";
+      isValid = false;
+    }
+  });
+
+  setErrors(newErrors);
+  return isValid;
+};
   // Validate all steps
   const validateAllSteps = () => {
     const newErrors = {};
@@ -446,55 +455,39 @@ const StepForm = () => {
       });
     }
 
-    if (!formData.section2.woundReferenceFile) {
-      newErrors.woundReferenceFile = "Please upload a wound reference document or image";
-      allValid = false;
-    }
+   if (step === 2 && !formData.section2.woundReferenceFile) {
+    newErrors.woundReferenceFile = "Please upload a wound reference document or image";
+    isValid = false;
+  }
 
-    setErrors(newErrors);
-    return allValid;
+     setErrors(newErrors);
+  return isValid;
   };
 
   // Prepare FormData for API submission
-  const prepareFormDataForAPI = (section) => {
-    const formDataObj = new FormData();
-    const validFields = Object.keys(initialFormState[section]);
-
-    // Log formData.section1 for debugging
-    console.log(`formData[${section}] before preparing FormData:`, formData[section]);
-
-    // Only include fields defined in initialFormState to prevent sending extraneous fields like 'name'
-    Object.entries(formData[section]).forEach(([key, value]) => {
-      if (!validFields.includes(key)) {
-        console.warn(`Ignoring unexpected field in ${section}: ${key}`);
-        return;
-      }
-      if (key.endsWith("Preview") || value === null || value === undefined) {
-        return;
-      }
-      if (value instanceof File) {
-        formDataObj.append(key, value);
-      } else {
-        formDataObj.append(key, typeof value === "boolean" ? value.toString() : value);
-      }
-    });
-
-    // Debug: Log FormData contents
-    const formDataEntries = {};
-    for (let [key, value] of formDataObj.entries()) {
-      formDataEntries[key] = value instanceof File ? value.name : value;
+const prepareFormDataForAPI = (section) => {
+  const formDataObj = new FormData();
+  
+  // Handle file fields separately
+  if (section === "section2") {
+    if (formData.section2.woundReferenceFile instanceof File) {
+      formDataObj.append('woundReferenceFile', formData.section2.woundReferenceFile);
     }
-    console.log(`Prepared FormData for ${section}:`, formDataEntries);
-
-    // Ensure patient_name is included
-    if (!formDataObj.has("patient_name") && section === "section1") {
-      console.error("patient_name is missing from FormData");
-      throw new Error("Patient name is required");
+    if (formData.section2.necrosisPhoto instanceof File) {
+      formDataObj.append('necrosisPhoto', formData.section2.necrosisPhoto);
     }
+  }
 
-    return formDataObj;
-  };
+  // Add all other fields
+  Object.entries(formData[section]).forEach(([key, value]) => {
+    if (key.endsWith('Preview') || value === null || value === undefined) return;
+    if (value instanceof File) return; // Already handled
+    
+    formDataObj.append(key, typeof value === 'boolean' ? value.toString() : value);
+  });
 
+  return formDataObj;
+};
   // Submit step 1 data
   const submitStep1 = async () => {
     try {
@@ -650,6 +643,83 @@ const submitStep2 = async (id) => {
       setIsSaving(false);
     }
   };
+
+{/* For necrosisPhoto */}
+{formData.section2.necrosis === "Yes" && (
+  <div className="form-group">
+    <label htmlFor="necrosisPhoto">Necrosis Photo</label>
+    <input
+      type="file"
+      id="necrosisPhoto"
+      name="necrosisPhoto"
+      accept="image/*"
+      onChange={(e) => handleChange(e, "section2")}
+    />
+    {errors.necrosisPhoto && (
+      <span className="error">{errors.necrosisPhoto}</span>
+    )}
+    {formData.section2.necrosisPhotoPreview && (
+      <img 
+        src={formData.section2.necrosisPhotoPreview} 
+        alt="Necrosis preview" 
+        className="image-preview"
+      />
+    )}
+  </div>
+)}
+
+<div className="form-group">
+  <label htmlFor="woundReferenceFile">
+    Wound Reference Documentation *
+    {errors.woundReferenceFile && (
+      <span className="error-message"> ({errors.woundReferenceFile})</span>
+    )}
+  </label>
+  <div className="file-upload-container">
+    <input
+      type="file"
+      id="woundReferenceFile"
+      name="woundReferenceFile"
+      accept="image/*,.pdf,.doc,.docx,.jpg,.jpeg,.png"
+      onChange={(e) => {
+        handleChange(e, "section2");
+        // Clear error immediately when file is selected
+        if (e.target.files.length > 0) {
+          setErrors(prev => ({...prev, woundReferenceFile: null}));
+        }
+      }}
+      className="file-input"
+    />
+    <label htmlFor="woundReferenceFile" className="file-upload-label">
+      Choose File
+    </label>
+    {formData.section2.woundReferenceFile && (
+      <div className="file-info">
+        <span>{formData.section2.woundReferenceFile.name}</span>
+        <button 
+          type="button" 
+          onClick={() => {
+            setFormData(prev => ({
+              ...prev,
+              section2: {
+                ...prev.section2,
+                woundReferenceFile: null,
+                woundReferenceFilePreview: null
+              }
+            }));
+            setErrors(prev => ({...prev, woundReferenceFile: null}));
+          }}
+          className="file-clear-btn"
+        >
+          ×
+        </button>
+      </div>
+    )}
+  </div>
+  <p className="file-hint">Accepted formats: JPG, PNG, PDF, DOC (Max 5MB)</p>
+</div>
+
+
 
   // Handle next step
   const nextStep = async () => {
@@ -900,48 +970,46 @@ const submitStep2 = async (id) => {
 
   // Handle save and continue
   const handleSaveAndContinue = async () => {
-    const isValid = validateCurrentStep();
-    if (!isValid) {
-      const firstError = Object.keys(errors)[0];
-      if (firstError) {
-        const errorElement =
-          document.querySelector(`[name="${firstError}"]`) ||
-          document.querySelector(`[id="${firstError}Upload"]`) ||
-          document.querySelector(`.consent-verification`);
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+  const isValid = validateCurrentStep();
+  if (!isValid) {
+    const firstError = Object.keys(errors)[0];
+    if (firstError) {
+      const errorElement = document.querySelector(`[name="${firstError}"]`) || 
+                          document.querySelector(`[id="${firstError}Upload"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-      return;
+    }
+    return;
+  }
+
+  setIsSaving(true);
+  try {
+    if (step === 1 && !patientId) {
+      const newPatientId = await submitStep1();
+      setPatientId(newPatientId);
+    } else if (step === 2 && patientId) {
+      await submitStep2(patientId);
     }
 
-    setIsSaving(true);
-    try {
-      // Handle different steps
-      if (step === 1 && !patientId) {
-        const newPatientId = await submitStep1();
-        setPatientId(newPatientId);
-      } else if (step === 2 && patientId) {
-        await submitStep2(patientId);
-      }
+    // Clean up form data before storing it
+    const formDataForStorage = JSON.parse(JSON.stringify(formData));
+    cleanUpFormData(formDataForStorage);
 
-      // Clean up form data before storing it
-      const formDataForStorage = JSON.parse(JSON.stringify(formData));
-      cleanUpFormData(formDataForStorage);
+    // Store the cleaned form data
+    localStorage.setItem("stepFormData", JSON.stringify(formDataForStorage));
+    toast.success("Progress saved successfully!");
 
-      // Store the cleaned form data
-      localStorage.setItem("stepFormData", JSON.stringify(formDataForStorage));
-      toast.success("Progress saved successfully!");
-
-      // Move to next step
-      nextStep();
-    } catch (error) {
-      console.error("Error saving and continuing:", error);
-      toast.error(error.message || "Failed to save progress. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    // Move to next step
+    setStep((prev) => Math.min(prev + 1, 3));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    console.error("Error saving and continuing:", error);
+    toast.error(error.message || "Failed to save progress. Please try again.");
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   // Clean up form data by removing sensitive fields
   const cleanUpFormData = (data) => {
@@ -953,8 +1021,8 @@ const submitStep2 = async (id) => {
       data.section2.necrosisPhoto = null;
       data.section2.necrosisPhotoPreview = null;
     }
-    if (data.section2.woundReferenceFile) {
-      data.section2.woundReferenceFile = null;
+     if (data.section2.woundReferenceFile) {
+    data.section2.woundReferenceFile = null;
     }
   };
 

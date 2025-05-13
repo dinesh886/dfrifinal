@@ -1,79 +1,135 @@
 import React from 'react';
 import './StepForm.css';
-import doctorrefference from '../../../assets/images/doctorrefference.png'
-import {  FiDownloadCloud } from "react-icons/fi"
+import doctorrefference from '../../../assets/images/doctorrefference.png';
+import { FiDownloadCloud, FiFileText } from "react-icons/fi";
 
 const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData);
   };
-  const handleWoundReferenceUpload = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+
+  // Wound Reference Handlers
+// Replace the existing handleWoundReferenceUpload with this:
+const handleWoundReferenceUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Validate file size (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    setErrors((prev) => ({
+      ...prev,
+      woundReferenceFile: "File exceeds 5MB limit",
+    }));
+    return;
+  }
+
+  // Validate file type
+  const validTypes = ["application/pdf", "image/jpeg", "image/png"];
+  if (!validTypes.includes(file.type)) {
+    setErrors((prev) => ({
+      ...prev,
+      woundReferenceFile: "Only PDF, JPG, or PNG files are allowed",
+    }));
+    return;
+  }
+
+  // Create preview URL if image
+  const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+
+  // Update form data
+  handleChange(
+    { target: { name: "woundReferenceFile", value: file } },
+    "section2"
+  );
+  handleChange(
+    { target: { name: "woundReferencePreview", value: previewUrl } },
+    "section2"
+  );
+
+  // Clear any existing error
+  setErrors((prev) => {
+    const newErrors = { ...prev };
+    delete newErrors.woundReferenceFile;
+    return newErrors;
+  });
+};
+
+  const handleRemoveWoundReference = () => {
+    if (formData.section2.woundReferencePreview) {
+      URL.revokeObjectURL(formData.section2.woundReferencePreview);
+    }
+
+    handleChange({ target: { name: "woundReferenceFile", value: null } }, "section2");
+    handleChange({ target: { name: "woundReferencePreview", value: null } }, "section2");
+
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.woundReference;
+      return newErrors;
+    });
+  };
+
+  // Culture Report Handlers
+  const handleCultureReportUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       setErrors((prev) => ({
         ...prev,
-        woundReference: "File exceeds 5MB limit",
-      }))
-      return
+        cultureReport: "File exceeds 5MB limit",
+      }));
+      return;
     }
 
     // Validate file type
-    const validTypes = ["application/pdf", "image/jpeg", "image/png"]
+    const validTypes = ["application/pdf", "image/jpeg", "image/png"];
     if (!validTypes.includes(file.type)) {
       setErrors((prev) => ({
         ...prev,
-        woundReference: "Only PDF, JPG, or PNG files are allowed",
-      }))
-      return
+        cultureReport: "Only PDF, JPG, or PNG files are allowed",
+      }));
+      return;
     }
-const [cultureReportFile, setCultureReportFile] = useState(null);
 
-const handleCultureReportUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    setCultureReportFile(file);
-  }
-};
-
-    // Create preview URL
-    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null
+    // Create preview URL (only for images)
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
 
     // Update form data
     handleChange(
-      { target: { name: "woundReferenceFile", value: file } },
+      { target: { name: "cultureReport", value: file } },
       "section2"
-    )
+    );
     handleChange(
-      { target: { name: "woundReferencePreview", value: previewUrl } },
+      { target: { name: "cultureReportPreview", value: previewUrl } },
       "section2"
-    )
+    );
 
     // Clear error
     setErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors.woundReference
-      return newErrors
-    })
-  }
+      const newErrors = { ...prev };
+      delete newErrors.cultureReport;
+      return newErrors;
+    });
+  };
 
-  const handleRemoveWoundReference = () => {
-    if (formData.section2.woundReferencePreview) {
-      URL.revokeObjectURL(formData.section2.woundReferencePreview)
+  const handleRemoveCultureReport = () => {
+    if (formData.section2.cultureReportPreview) {
+      URL.revokeObjectURL(formData.section2.cultureReportPreview);
     }
 
-    handleChange({ target: { name: "woundReferenceFile", value: null } }, "section2")
-    handleChange({ target: { name: "woundReferencePreview", value: null } }, "section2")
+    handleChange({ target: { name: "cultureReport", value: null } }, "section2");
+    handleChange({ target: { name: "cultureReportPreview", value: null } }, "section2");
 
     setErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors.woundReference
-      return newErrors
-    })
-  }
+      const newErrors = { ...prev };
+      delete newErrors.cultureReport;
+      return newErrors;
+    });
+  };
+
   return (
     <div className="medical-add-container">
       {/* <div className="medical-add-header">
@@ -648,6 +704,74 @@ const handleCultureReportUpload = (event) => {
           </div>
         </div>
 
+
+        <div className="medical-add-group">
+  <label className="medical-add-label required">Wound Reference Documentation</label>
+  <div className="medical-upload-container">
+    {formData.section2.woundReferenceFile ? (
+      <div className="medical-file-preview-card">
+        <div className="medical-file-preview-wrapper">
+          {formData.section2.woundReferencePreview ? (
+            <img
+              src={formData.section2.woundReferencePreview}
+              alt="Wound Reference Preview"
+              className="medical-image-preview"
+            />
+          ) : (
+            <div className="medical-file-icon">
+              <svg viewBox="0 0 24 24" width="48" height="48">
+                <path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+              </svg>
+              <p>{formData.section2.woundReferenceFile.name}</p>
+            </div>
+          )}
+          <div className="medical-file-actions">
+            <button
+              type="button"
+              className="medical-file-remove-btn"
+              onClick={handleRemoveWoundReference}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <label className="medical-upload-card">
+        <input
+          type="file"
+          name="woundReferenceFile"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={handleWoundReferenceUpload}
+          className="medical-upload-input"
+        />
+        <div className="medical-upload-content">
+          <div className="medical-upload-icon-wrapper">
+            <svg className="medical-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeWidth="2" strokeLinecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </div>
+          <div className="medical-upload-text">
+            <p className="medical-upload-title">Upload Wound Reference</p>
+            <p className="medical-upload-subtitle">PDF, JPG, PNG (Max 5MB)</p>
+          </div>
+        </div>
+      </label>
+    )}
+    {errors.woundReferenceFile && (
+      <p className="medical-error-message">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path fill="currentColor" d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8z" />
+        </svg>
+        {errors.woundReferenceFile}
+      </p>
+    )}
+  </div>
+</div>
+
         {/* Section 3: Infection Details */}
         <div className="infection-details medical-add-section">
           <h2 className="medical-add-section-title">Infection Details:</h2>
@@ -935,61 +1059,68 @@ const handleCultureReportUpload = (event) => {
 
             {/* Document upload section - only shown when "Yes" is selected */}
             {formData.section2.cultureReportAvailable === 'Yes' && (
-              <div className="medical-upload-container">
-                {formData.section2.cultureReportPreview ? (
-                  <div className="medical-image-preview-card">
-                    <div className="medical-image-preview-wrapper">
-                      <img
-                        src={formData.section2.cultureReportPreview}
-                        alt="Culture Report Preview"
-                        className="medical-image-preview"
-                      />
-                      <div className="medical-image-actions">
-                        <button
-                          type="button"
-                          className="medical-image-remove-btn"
-                          onClick={handleRemoveCultureReport}
-                        >
-                          <svg viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                          </svg>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
+        <div className="medical-upload-container">
+          {formData.section2.cultureReportPreview || formData.section2.cultureReport?.type === "application/pdf" ? (
+            <div className="medical-image-preview-card">
+              <div className="medical-image-preview-wrapper">
+                {formData.section2.cultureReport?.type === "application/pdf" ? (
+                  <div className="pdf-preview">
+                    <FiFileText size={48} />
+                    <span>{formData.section2.cultureReport.name}</span>
                   </div>
                 ) : (
-                  <label className="medical-upload-card">
-                    <input
-                      type="file"
-                      name="cultureReport"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleCultureReportUpload(e)}
-                      className="medical-upload-input"
-                    />
-                    <div className="medical-upload-content">
-                      <div className="medical-upload-icon-wrapper">
-                        <svg className="medical-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path strokeWidth="2" strokeLinecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                      </div>
-                      <div className="medical-upload-text">
-                        <p className="medical-upload-title">Upload Culture report</p>
-                        <p className="medical-upload-subtitle">PDF, JPG, PNG (Max 5MB)</p>
-                      </div>
-                    </div>
-                  </label>
+                  <img
+                    src={formData.section2.cultureReportPreview}
+                    alt="Culture Report Preview"
+                    className="medical-image-preview"
+                  />
                 )}
-                {errors.cultureReport && (
-                  <p className="medical-error-message">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                      <path fill="currentColor" d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8z" />
+                <div className="medical-image-actions">
+                  <button
+                    type="button"
+                    className="medical-image-remove-btn"
+                    onClick={handleRemoveCultureReport}
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                      <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                     </svg>
-                    {errors.cultureReport}
-                  </p>
-                )}
+                    Remove
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
+          ) : (
+            <label className="medical-upload-card">
+              <input
+                type="file"
+                name="cultureReport"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleCultureReportUpload}
+                className="medical-upload-input"
+              />
+              <div className="medical-upload-content">
+                <div className="medical-upload-icon-wrapper">
+                  <svg className="medical-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeWidth="2" strokeLinecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div className="medical-upload-text">
+                  <p className="medical-upload-title">Upload Culture report</p>
+                  <p className="medical-upload-subtitle">PDF, JPG, PNG (Max 5MB)</p>
+                </div>
+              </div>
+            </label>
+          )}
+          {errors.cultureReport && (
+            <p className="medical-error-message">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8z" />
+              </svg>
+              {errors.cultureReport}
+            </p>
+          )}
+        </div>
+      )}
             {errors.cultureReportAvailable && <span className="error-message">{errors.cultureReportAvailable}</span>}
           </div>
         </div>

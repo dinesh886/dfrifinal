@@ -1011,13 +1011,25 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
-
+/* 
 .medical-image-preview-wrapper {
   position: relative;
   padding-top: 50%;
-  /* 4:3 aspect ratio */
   background-color: #f8f9fa;
+} */
+ 
+.medical-image-preview-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  min-height: 300px;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  position: relative; /* ✅ Required for the remove button */
 }
+
 
 .medical-image-preview {
   position: absolute;
