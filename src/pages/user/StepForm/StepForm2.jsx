@@ -11,46 +11,39 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
   // Wound Reference Handlers
 // Replace the existing handleWoundReferenceUpload with this:
+// In StepForm2.jsx
 const handleWoundReferenceUpload = (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  // Validate file size (5MB)
+  // Validate file
   if (file.size > 5 * 1024 * 1024) {
-    setErrors((prev) => ({
+    setErrors(prev => ({
       ...prev,
-      woundReferenceFile: "File exceeds 5MB limit",
+      woundReference: "File exceeds 5MB limit"
     }));
     return;
   }
 
-  // Validate file type
   const validTypes = ["application/pdf", "image/jpeg", "image/png"];
   if (!validTypes.includes(file.type)) {
-    setErrors((prev) => ({
+    setErrors(prev => ({
       ...prev,
-      woundReferenceFile: "Only PDF, JPG, or PNG files are allowed",
+      woundReference: "Only PDF, JPG, or PNG files are allowed"
     }));
     return;
   }
-
-  // Create preview URL if image
-  const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
 
   // Update form data
   handleChange(
     { target: { name: "woundReferenceFile", value: file } },
     "section2"
   );
-  handleChange(
-    { target: { name: "woundReferencePreview", value: previewUrl } },
-    "section2"
-  );
 
   // Clear any existing error
-  setErrors((prev) => {
+  setErrors(prev => {
     const newErrors = { ...prev };
-    delete newErrors.woundReferenceFile;
+    delete newErrors.woundReference;
     return newErrors;
   });
 };
