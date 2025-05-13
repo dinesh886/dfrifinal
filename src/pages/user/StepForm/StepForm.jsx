@@ -465,26 +465,36 @@ const validateCurrentStep = () => {
   };
 
   // Prepare FormData for API submission
-const prepareFormDataForAPI = (section) => {
+ const prepareFormDataForAPI = (section) => {
   const formDataObj = new FormData();
-  
-  // Handle file fields separately
-  if (section === "section2") {
-    if (formData.section2.woundReferenceFile instanceof File) {
-      formDataObj.append('woundReferenceFile', formData.section2.woundReferenceFile);
+  const validFields = Object.keys(initialFormState[section]);
+
+  Object.entries(formData[section]).forEach(([key, value]) => {
+    if (!validFields.includes(key)) {
+      console.warn(`Ignoring unexpected field in ${section}: ${key}`);
+      return;
     }
+    if (key.endsWith("Preview") || value === null || value === undefined) {
+      return;
+    }
+    if (value instanceof File) {
+      formDataObj.append(key, value);
+    } else if (typeof value === 'boolean') {
+      formDataObj.append(key, value.toString());
+    } else {
+      formDataObj.append(key, value);
+    }
+  });
+
+  // Special handling for file fields
+  if (section === "section2") {
     if (formData.section2.necrosisPhoto instanceof File) {
-      formDataObj.append('necrosisPhoto', formData.section2.necrosisPhoto);
+      formDataObj.append("necrosisPhoto", formData.section2.necrosisPhoto);
+    }
+    if (formData.section2.woundReferenceFile instanceof File) {
+      formDataObj.append("woundReferenceFile", formData.section2.woundReferenceFile);
     }
   }
-
-  // Add all other fields
-  Object.entries(formData[section]).forEach(([key, value]) => {
-    if (key.endsWith('Preview') || value === null || value === undefined) return;
-    if (value instanceof File) return; // Already handled
-    
-    formDataObj.append(key, typeof value === 'boolean' ? value.toString() : value);
-  });
 
   return formDataObj;
 };
@@ -670,53 +680,24 @@ const submitStep2 = async (id) => {
 
 <div className="form-group">
   <label htmlFor="woundReferenceFile">
-    Wound Reference Documentation *
+    Wound Reference File *
     {errors.woundReferenceFile && (
-      <span className="error-message"> ({errors.woundReferenceFile})</span>
+      <span className="error"> - {errors.woundReferenceFile}</span>
     )}
   </label>
-  <div className="file-upload-container">
-    <input
-      type="file"
-      id="woundReferenceFile"
-      name="woundReferenceFile"
-      accept="image/*,.pdf,.doc,.docx,.jpg,.jpeg,.png"
-      onChange={(e) => {
-        handleChange(e, "section2");
-        // Clear error immediately when file is selected
-        if (e.target.files.length > 0) {
-          setErrors(prev => ({...prev, woundReferenceFile: null}));
-        }
-      }}
-      className="file-input"
-    />
-    <label htmlFor="woundReferenceFile" className="file-upload-label">
-      Choose File
-    </label>
-    {formData.section2.woundReferenceFile && (
-      <div className="file-info">
-        <span>{formData.section2.woundReferenceFile.name}</span>
-        <button 
-          type="button" 
-          onClick={() => {
-            setFormData(prev => ({
-              ...prev,
-              section2: {
-                ...prev.section2,
-                woundReferenceFile: null,
-                woundReferenceFilePreview: null
-              }
-            }));
-            setErrors(prev => ({...prev, woundReferenceFile: null}));
-          }}
-          className="file-clear-btn"
-        >
-          ×
-        </button>
-      </div>
-    )}
-  </div>
-  <p className="file-hint">Accepted formats: JPG, PNG, PDF, DOC (Max 5MB)</p>
+  <input
+    type="file"
+    id="woundReferenceFile"
+    name="woundReferenceFile"
+    accept="image/*,.pdf,.doc,.docx"
+    onChange={(e) => handleChange(e, "section2")}
+    required
+  />
+  {formData.section2.woundReferenceFile && (
+    <div className="file-preview">
+      Selected: {formData.section2.woundReferenceFile.name}
+    </div>
+  )}
 </div>
 
 
@@ -970,46 +951,48 @@ const submitStep2 = async (id) => {
 
   // Handle save and continue
   const handleSaveAndContinue = async () => {
-  const isValid = validateCurrentStep();
-  if (!isValid) {
-    const firstError = Object.keys(errors)[0];
-    if (firstError) {
-      const errorElement = document.querySelector(`[name="${firstError}"]`) || 
-                          document.querySelector(`[id="${firstError}Upload"]`);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    const isValid = validateCurrentStep();
+    if (!isValid) {
+      const firstError = Object.keys(errors)[0];
+      if (firstError) {
+        const errorElement =
+          document.querySelector(`[name="${firstError}"]`) ||
+          document.querySelector(`[id="${firstError}Upload"]`) ||
+          document.querySelector(`.consent-verification`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
       }
-    }
-    return;
-  }
-
-  setIsSaving(true);
-  try {
-    if (step === 1 && !patientId) {
-      const newPatientId = await submitStep1();
-      setPatientId(newPatientId);
-    } else if (step === 2 && patientId) {
-      await submitStep2(patientId);
+      return;
     }
 
-    // Clean up form data before storing it
-    const formDataForStorage = JSON.parse(JSON.stringify(formData));
-    cleanUpFormData(formDataForStorage);
+    setIsSaving(true);
+    try {
+      // Handle different steps
+      if (step === 1 && !patientId) {
+        const newPatientId = await submitStep1();
+        setPatientId(newPatientId);
+      } else if (step === 2 && patientId) {
+        await submitStep2(patientId);
+      }
 
-    // Store the cleaned form data
-    localStorage.setItem("stepFormData", JSON.stringify(formDataForStorage));
-    toast.success("Progress saved successfully!");
+      // Clean up form data before storing it
+      const formDataForStorage = JSON.parse(JSON.stringify(formData));
+      cleanUpFormData(formDataForStorage);
 
-    // Move to next step
-    setStep((prev) => Math.min(prev + 1, 3));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (error) {
-    console.error("Error saving and continuing:", error);
-    toast.error(error.message || "Failed to save progress. Please try again.");
-  } finally {
-    setIsSaving(false);
-  }
-};
+      // Store the cleaned form data
+      localStorage.setItem("stepFormData", JSON.stringify(formDataForStorage));
+      toast.success("Progress saved successfully!");
+
+      // Move to next step
+      nextStep();
+    } catch (error) {
+      console.error("Error saving and continuing:", error);
+      toast.error(error.message || "Failed to save progress. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Clean up form data by removing sensitive fields
   const cleanUpFormData = (data) => {
