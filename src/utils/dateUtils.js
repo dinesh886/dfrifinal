@@ -77,21 +77,18 @@ export const is24HoursPassed = (dateString, currentTime = new Date()) => {
     const diffMs = currentTime - submissionDate;
     return diffMs >= 24 * 60 * 60 * 1000;
 };
-
-export const calculateRemainingTime = (dateString, currentTime = new Date()) => {
-  if (!dateString) return "0h 00m 00s";
-
-  const submissionDate = new Date(dateString);
-  if (isNaN(submissionDate.getTime())) return "0h 00m 00s"; // Invalid date fallback
-
-  const expirationTime = new Date(submissionDate.getTime() + 24 * 60 * 60 * 1000); // Add 24 hours
-  const diffMs = expirationTime - currentTime;
-
-  if (diffMs <= 0) return "0h 00m 00s";
-
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-  return `${diffHours}h ${diffMinutes.toString().padStart(2, '0')}m ${diffSeconds.toString().padStart(2, '0')}s`;
-};
+// utils/dateUtils.js
+export const calculateRemainingTime = (submissionDate, currentTime) => {
+    const submittedAt = new Date(submissionDate).getTime();
+    const now = currentTime ? new Date(currentTime).getTime() : Date.now();
+  
+    const diffMs = 24 * 60 * 60 * 1000 - (now - submittedAt); // 24 hours in ms
+    if (diffMs <= 0) return "0h 00m 00s";
+  
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+  
+    return `${hours}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
+  };
+  

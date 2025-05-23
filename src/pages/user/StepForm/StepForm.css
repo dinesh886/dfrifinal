@@ -18,6 +18,7 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     sans-serif;
 }
+
 /* Base Variables */
 :root {
 
@@ -61,6 +62,7 @@
 
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
+
 /* Container and layout */
 .medical-add-container {
   max-width: 1200px;
@@ -190,6 +192,7 @@
   resize: vertical;
   min-height: 100px;
 }
+
 .input-icon {
   position: absolute;
   left: 16px;
@@ -234,7 +237,7 @@
   border: 1px solid var(--border-color);
   color: var(--text-color);
   font-weight: 500;
-      margin-bottom: 10px;
+  margin-bottom: 10px;
   transition: all 0.2s ease;
   display: inline-block;
 }
@@ -1011,13 +1014,14 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
+
 /* 
 .medical-image-preview-wrapper {
   position: relative;
   padding-top: 50%;
   background-color: #f8f9fa;
 } */
- 
+
 .medical-image-preview-wrapper {
   display: flex;
   align-items: center;
@@ -1027,7 +1031,8 @@ body {
   padding: 1rem;
   border: 1px solid #ddd;
   overflow: hidden;
-  position: relative; /* ✅ Required for the remove button */
+  position: relative;
+  /* ✅ Required for the remove button */
 }
 
 
@@ -1240,11 +1245,12 @@ body {
   color: #ff4d4f;
   cursor: pointer;
 }
+
 .remove-btn:hover {
   background-color: #ec2828d0;
   border-radius: 7px;
   color: #fff;
-  
+
 }
 
 .upload-placeholder {
@@ -1325,9 +1331,11 @@ body {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-.followupformaction{
+
+.followupformaction {
   padding: 20px;
 }
+
 .follow-up-status.updated {
   background-color: #4CAF50;
   /* Green background */
@@ -1338,19 +1346,38 @@ body {
   font-weight: bold;
   display: inline-block;
 }
-.Wound-Classification-image img{
+
+.Wound-Classification-image img {
   width: 100%;
 }
+
 .medical-label-download-wrapper {
   display: flex;
-    justify-content: space-around;
+  justify-content: space-around;
   align-items: center;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
-.medical-label-download-wrapper a{
+
+.medical-label-download-wrapper2 {
+  display: flex;
+  flex-direction: column;
+  /* Stack vertically */
+  align-items: center;
+  /* Center horizontally */
+  margin: 0.5rem 0;
+}
+
+.medical-add-label2 {
+  text-align: center;
+  margin-bottom: 0.3rem;
+  /* small gap between label and button */
+}
+
+.medical-label-download-wrapper a {
   text-decoration: none;
 }
+
 .medical-download-btn {
   display: inline-flex;
   align-items: center;
@@ -1363,10 +1390,99 @@ body {
   transition: background-color 0.3s ease;
 
 }
-.download-icon2{
+
+.download-icon2 {
   color: #fff;
   font-size: 26px;
 }
-.stepform-actions{
-      justify-content: flex-end !important; 
+
+.stepform-actions {
+  justify-content: flex-end !important;
+}
+
+.right-foot,
+.left-foot {
+  color: var(--sidebar-active);
+  font-size: 20px;
+}
+
+.left-foot2 {
+  font-size: 17px;
+  color: var(--sidebar-active);
+}
+
+.subtitle.required.left-foot2 {
+  display: inline-flex;
+  align-items: center;
+}
+
+.medical-add2-checkbox {
+  margin-left: 17px;
+  transform: scale(1.5);
+  /* Increase the checkbox size */
+  cursor: pointer;
+  /* Makes it clickable */
+  /* Small gap between label and checkbox */
+}
+
+.followup-submit {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.point-label {
+
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--foreground);
+}
+
+.download-container {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+  width: fit-content;
+}
+
+.download-container:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.download-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.download-link:hover {
+  color: #1e40af;
+}
+
+.label-with-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* small gap between label text and icon */
+}
+
+.label-arrow-icon {
+  font-size: 16px;
+  color: #555;
+  /* Adjust color as needed */
+}
+
+.pdfdownlaod {
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px;
+}
+.new-option{
+  width: 50%;
 }

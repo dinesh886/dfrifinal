@@ -1,5 +1,3 @@
-export const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://webstrategy.co.in/rssdi/api'  // ← Removed trailing space
-  : '/api';
-
-export const API_TIMEOUT = 30000;
+export const API_BASE_URL = 'https://webstrategy.co.in/rssdi/api';
+export const IMAGE_BASE_URL = 'https://webstrategy.co.in/rssdi/';
+export const API_TIMEOUT = 30000; // 30 seconds

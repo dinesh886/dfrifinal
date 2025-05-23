@@ -1,17 +1,16 @@
-"use client"
-
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "react-toastify"
-import "./DoctorSignup.css"
-import { User, Building, Users, FileText, Lock, Mail } from 'lucide-react'
-import DoctorIcon from "../../assets/images/undraw_doctors_djoj.svg"
-import { FiLogIn } from "react-icons/fi"
-import { Eye, EyeOff } from 'lucide-react'
-import { apiRequest } from "../../services/api-helper"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { User, Building, Users, FileText, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { FiLogIn } from "react-icons/fi";
+import { apiRequest } from "../../services/api-helper";
+import DoctorIcon from "../../assets/images/undraw_doctors_djoj.svg";
+import "./DoctorSignup.css";
 
 const DoctorSignup = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const initialFormState = {
         doctorName: "",
         education: "",
@@ -23,16 +22,16 @@ const DoctorSignup = () => {
         patientsPerDay: "",
         patientsPerWeek: "",
         team: {
-            diabetologist: false,
-            generalPractitioner: false,
-            generalSurgeon: false,
-            orthopaedicSurgeon: false,
-            podiatricSurgeon: false,
-            vascularSurgeon: false,
-            infectiousSpecialist: false,
-            podiatrist: false,
-            diabetesNurse: false,
-            pedorthist: false,
+            diabetologist: "",
+            generalPractitioner: "",
+            generalSurgeon: "",
+            orthopaedicSurgeon: "",
+            podiatricSurgeon: "",
+            vascularSurgeon: "",
+            infectiousSpecialist: "",
+            podiatrist: "",
+            diabetesNurse: "",
+            pedorthist: "",
         },
         referringPatients: "",
         referringSpecialist: "",
@@ -41,91 +40,114 @@ const DoctorSignup = () => {
         receivingReferrals: "",
         email: "",
         password: "",
-    }
+        phone: "",
+    };
 
-    const [formData, setFormData] = useState(initialFormState)
-    const [errors, setErrors] = useState({})
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
+    const [formData, setFormData] = useState(initialFormState);
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [isGoogleEmail, setIsGoogleEmail] = useState(false); // 👈 Add this here
+    // Check for Google login data in URL params
+    useEffect(() => {
+        const googleDoctorInfo = sessionStorage.getItem("googleDoctorInfo");
+        if (googleDoctorInfo) {
+            const { email, name, picture } = JSON.parse(googleDoctorInfo);
+            setFormData((prev) => ({
+                ...prev,
+                email,
+                doctorName: name || prev.doctorName,
+                ...(picture && { picture }),
+            }));
+            setIsGoogleEmail(true);
+        }
+    }, []);
+      
+    
 
     const handleReset = () => {
-        setFormData(initialFormState)
-        setErrors({})
-        setShowPassword(false)
-        toast.info("Form has been reset")
-    }
+        setFormData(initialFormState);
+        setErrors({});
+        setShowPassword(false);
+        toast.info("Form has been reset");
+    };
 
     const validateForm = () => {
-        const newErrors = {}
+        const newErrors = {};
 
         // Personal Information
-        if (!formData.doctorName.trim()) newErrors.doctorName = "Doctor name is required."
-        if (!formData.education.trim()) newErrors.education = "Education is required."
-        if (!formData.specialty.trim()) newErrors.specialty = "Specialty is required."
+        if (!formData.doctorName.trim()) newErrors.doctorName = "Doctor name is required.";
+        if (!formData.education.trim()) newErrors.education = "Education is required.";
+        if (!formData.specialty.trim()) newErrors.specialty = "Specialty is required.";
         if (!formData.experienceYears || formData.experienceYears < 0)
-            newErrors.experienceYears = "Valid years of experience required."
+            newErrors.experienceYears = "Valid years of experience required.";
 
         // Facility Information
-        if (!formData.facilityName.trim()) newErrors.facilityName = "Facility name is required."
-        if (!formData.facilityAddress.trim()) newErrors.facilityAddress = "Facility address is required."
-        if (!formData.facilityType) newErrors.facilityType = "Facility type is required."
+        if (!formData.facilityName.trim()) newErrors.facilityName = "Facility name is required.";
+        if (!formData.facilityAddress.trim()) newErrors.facilityAddress = "Facility address is required.";
+        if (!formData.facilityType) newErrors.facilityType = "Facility type is required.";
 
         // Patients numbers
-        if (formData.patientsPerDay < 0) newErrors.patientsPerDay = "Patients per day must be 0 or more."
-        if (formData.patientsPerWeek < 0) newErrors.patientsPerWeek = "Patients per week must be 0 or more."
+        if (formData.patientsPerDay < 0) newErrors.patientsPerDay = "Patients per day must be 0 or more.";
+        if (formData.patientsPerWeek < 0) newErrors.patientsPerWeek = "Patients per week must be 0 or more.";
 
         // Referral Information
         if (formData.referringPatients === "Yes" && !formData.referringSpecialist.trim()) {
-            newErrors.referringSpecialist = "Please specify the specialists you refer to."
+            newErrors.referringSpecialist = "Please specify the specialists you refer to.";
         }
         if (formData.referringSurgical === "Yes" && !formData.surgicalProcedure.trim()) {
-            newErrors.surgicalProcedure = "Please specify the surgical procedure."
+            newErrors.surgicalProcedure = "Please specify the surgical procedure.";
         }
 
         // Credentials
         if (!formData.email.trim()) {
-            newErrors.email = "Email is required."
+            newErrors.email = "Email is required.";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Please enter a valid email address."
+            newErrors.email = "Please enter a valid email address.";
         }
 
         if (!formData.password) {
-            newErrors.password = "Password is required."
+            newErrors.password = "Password is required.";
         } else if (formData.password.length < 8) {
-            newErrors.password = "Password must be at least 8 characters long."
+            newErrors.password = "Password must be at least 8 characters long.";
         } else if (!/[A-Z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
-            newErrors.password = "Password must contain at least one uppercase letter and one number."
+            newErrors.password = "Password must contain at least one uppercase letter and one number.";
         }
 
         // Referral Information
         if (!formData.referringPatients) {
-            newErrors.referringPatients = "Please select if you are referring patients."
+            newErrors.referringPatients = "Please select if you are referring patients.";
         } else if (formData.referringPatients === "Yes" && !formData.referringSpecialist.trim()) {
-            newErrors.referringSpecialist = "Please specify which specialists you refer to."
+            newErrors.referringSpecialist = "Please specify which specialists you refer to.";
         }
 
         if (!formData.referringSurgical) {
-            newErrors.referringSurgical = "Please select if you are referring for surgical procedures."
+            newErrors.referringSurgical = "Please select if you are referring for surgical procedures.";
         } else if (formData.referringSurgical === "Yes" && !formData.surgicalProcedure.trim()) {
-            newErrors.surgicalProcedure = "Please specify the type of surgical procedure."
+            newErrors.surgicalProcedure = "Please specify the type of surgical procedure.";
         }
 
         if (!formData.receivingReferrals) {
-            newErrors.receivingReferrals = "Please select if you receive referrals."
+            newErrors.receivingReferrals = "Please select if you receive referrals.";
         }
 
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-    }
+        // Phone validation (optional field)
+        if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+            newErrors.phone = "Enter a valid 10-digit phone number";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!validateForm()) {
-            toast.error("Please fix the errors in the form")
-            return
+            toast.error("Please fix the errors in the form");
+            return;
         }
 
-        setIsSubmitting(true)
+        setIsSubmitting(true);
 
         const formattedData = {
             doctors_name: formData.doctorName,
@@ -145,69 +167,80 @@ const DoctorSignup = () => {
             receiving_referrals: formData.receivingReferrals,
             email: formData.email,
             password: formData.password,
-            phone: formData.phone, // Add phone to the formatted data
-        }
+            phone: formData.phone || null,
+            picture: formData.picture || null,
+        };
 
         try {
             const response = await apiRequest("/doctors/store", {
                 method: "POST",
                 body: JSON.stringify(formattedData),
-            })
-            toast.success("Registration successful!")
-            navigate("/success")
+            });
+
+            localStorage.setItem(`user_${formData.email}_registered`, 'true');
+
+            toast.success("Registration successful! Please log in.");
+
+            console.log("Redirecting to login with email:", formData.email);
+            navigate(`/user-login?email=${encodeURIComponent(formData.email)}`, { replace: true });
+            return;
         } catch (error) {
-            console.error("Registration error:", error)
-            if (
-                error.message.includes("UNIQUE constraint failed") ||
-                error.message.includes("Duplicate entry")
-            ) {
-                toast.error("This email is already registered.")
+            console.error("Registration error:", error);
+
+            if (error.data?.errors) {
+                Object.values(error.data.errors).forEach(errMessages => {
+                    errMessages.forEach(message => toast.error(message));
+                });
+            } else if (error.message.includes("UNIQUE constraint failed")) {
+                toast.error("This email is already registered. Please log in instead.");
+                navigate(`/user-login?email=${encodeURIComponent(formData.email)}`, { replace: true });
+                return;
             } else {
-                toast.error(error.message || "Something went wrong.")
+                toast.error(error.message || "Something went wrong.");
             }
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
-
+    };
+    
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target
+        const { name, value, type, checked } = e.target;
 
         if (name.startsWith("team.")) {
-            const teamField = name.split(".")[1]
+            const teamField = name.split(".")[1];
             setFormData((prevData) => ({
                 ...prevData,
                 team: {
                     ...prevData.team,
                     [teamField]: checked,
                 },
-            }))
+            }));
         } else {
             setFormData((prevData) => ({
                 ...prevData,
                 [name]: type === "checkbox" ? checked : value,
-            }))
+            }));
         }
 
         // Clear errors dynamically
         setErrors((prevErrors) => {
-            const updatedErrors = { ...prevErrors }
+            const updatedErrors = { ...prevErrors };
 
             if (name === "email") {
                 if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    delete updatedErrors.email
+                    delete updatedErrors.email;
                 }
             }
 
             if (name === "password") {
                 if (value.length >= 8) {
-                    delete updatedErrors.password
+                    delete updatedErrors.password;
                 }
             }
 
-            return updatedErrors
-        })
-    }
+            return updatedErrors;
+        });
+    };
 
     return (
         <div className="registration-container">
@@ -583,21 +616,21 @@ const DoctorSignup = () => {
                     <div className="form-grid">
                         <div className="form-group">
                             <label htmlFor="email">Email Address</label>
-                            <div className="input-with-icon">
-                                <Mail className="input-icon" size={18} />
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                    className={`form-control ${errors.email ? "input-error" : ""}`}
-                                    placeholder="your.email@example.com"
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                                className={`form-control ${errors.email ? "input-error" : ""}`}
+                                placeholder="doctor@example.com"
+                                readOnly={isGoogleEmail} // 👈 Make read-only if Google login
+                            />
+
                             {errors.email && <span className="error-message">{errors.email}</span>}
                         </div>
+
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
                             <div className="input-with-icon">
@@ -657,7 +690,7 @@ const DoctorSignup = () => {
                 </div>
             </form>
         </div>
-    )
-}
+    );
+};
 
-export default DoctorSignup
+export default DoctorSignup;

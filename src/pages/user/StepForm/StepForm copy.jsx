@@ -335,37 +335,37 @@ const StepForm = () => {
   };
   useEffect(() => {
     if (location.state?.initialData && location.state?.isUpdate) {
-        setIsEditMode(true);
-        setPatientId(location.state.initialData.patientId);
-        const patientData = location.state.initialData.formData;
-        if (patientData) {
-            console.log("Loading patient data for editing:", patientData);
-            const sanitizedData = { ...initialFormState, ...patientData };
-            if (sanitizedData.section1.name) {
-                delete sanitizedData.section1.name;
-            }
-            setFormData(sanitizedData);
+      setIsEditMode(true);
+      setPatientId(location.state.initialData.patientId);
+      const patientData = location.state.initialData.formData;
+      if (patientData) {
+        console.log("Loading patient data for editing:", patientData);
+        const sanitizedData = { ...initialFormState, ...patientData };
+        if (sanitizedData.section1.name) {
+          delete sanitizedData.section1.name;
         }
+        setFormData(sanitizedData);
+      }
     } else {
-        setIsEditMode(false);
-        const saved = localStorage.getItem("stepFormData");
-        if (saved) {
-            try {
-                const parsedData = JSON.parse(saved);
-                if (parsedData.section1.name) {
-                    delete parsedData.section1.name;
-                }
-                if (parsedData.section1.consentForm) {
-                    parsedData.section1.consentForm = null;
-                    parsedData.section1.consentFormPreview = null;
-                }
-                setFormData({ ...initialFormState, ...parsedData });
-            } catch (error) {
-                console.error("Error parsing saved form data:", error);
-            }
+      setIsEditMode(false);
+      const saved = localStorage.getItem("stepFormData");
+      if (saved) {
+        try {
+          const parsedData = JSON.parse(saved);
+          if (parsedData.section1.name) {
+            delete parsedData.section1.name;
+          }
+          if (parsedData.section1.consentForm) {
+            parsedData.section1.consentForm = null;
+            parsedData.section1.consentFormPreview = null;
+          }
+          setFormData({ ...initialFormState, ...parsedData });
+        } catch (error) {
+          console.error("Error parsing saved form data:", error);
         }
+      }
     }
-}, [location.state]);
+  }, [location.state]);
   // Validate consent form for step 1
   const validateConsentForm = () => {
     const newErrors = {};
@@ -411,7 +411,7 @@ const StepForm = () => {
     });
 
     if (step === 2 && !formData.section2.woundReferenceFile) {
-      newErrors.woundReferenceFile = "Please upload a wound reference document or image";
+      newErrors.woundReferenceFile = "";
       isValid = false;
     }
 
@@ -446,10 +446,10 @@ const StepForm = () => {
       });
     }
 
-    if (!formData.section2.woundReferenceFile) {
-      newErrors.woundReferenceFile = "Please upload a wound reference document or image";
-      allValid = false;
-    }
+    // if (!formData.section2.woundReferenceFile) {
+    //   newErrors.woundReferenceFile = "Please upload a wound reference document or image";
+    //   allValid = false;
+    // }
 
     setErrors(newErrors);
     return allValid;
@@ -572,8 +572,8 @@ const StepForm = () => {
     }
   };
 
-  
-  
+
+
 
   // Submit step 2 data
   const submitStep2 = async (id) => {
@@ -774,7 +774,7 @@ const StepForm = () => {
     }
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
-  
+
   // Handle consent form download
   const handleDownloadForm = async () => {
     try {

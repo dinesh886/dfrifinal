@@ -19,25 +19,55 @@ const DoctorList = () => {
         doctor: null,
         isLoading: false,
     })
+    const [deletePermission, setDeletePermission] = useState("Disabled");
 
+    const fetchDeletePermission = async () => {
+        try {
+            const adminId = sessionStorage.getItem("adminId");
+            const response = await apiRequest(`/subadmins/${adminId}/permissions`);
+            console.log("Fetched permission from API:", response); // ✅ Confirm in console
+            // ✅ Safely access the nested `permissions` object
+            setDeletePermission(response.permissions?.delete_doctors || "Disabled");
+        } catch (error) {
+            console.error("Failed to fetch delete permission:", error);
+            setDeletePermission("Disabled");
+        }
+    };
+
+    useEffect(() => {
+        fetchDoctors();
+        fetchDeletePermission();
+    }, []);
+    
+        
     // Fetch all doctors from API
     const fetchDoctors = async () => {
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-            const response = await apiRequest("/doctors")
-            console.log("API Response:", response)
-
-            // Make sure we're working with the data property if your API wraps data
-            const data = response.data || response
-            setDoctors(Array.isArray(data) ? data : [])
+            const response = await apiRequest("/doctors");
+            console.log("API Response:", response);
+    
+            const data = response.data || response;
+    
+            // Sort by updated_at in descending order (latest first)
+            const sorted = Array.isArray(data)
+                ? [...data].sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+                : [];
+    
+            // Add serial numbers after sorting
+            const doctorsWithSNo = sorted.map((doc, index) => ({ ...doc, sNo: index + 1 }));
+    
+            setDoctors(doctorsWithSNo);
         } catch (error) {
-            console.error("Error fetching doctors:", error)
-            setError(error.message)
-            toast.error(`Error fetching doctors: ${error.message}`)
+            console.error("Error fetching doctors:", error);
+            setError(error.message);
+            toast.error(`Error fetching doctors: ${error.message}`);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
+    
+    
     useEffect(() => {
         fetchDoctors()
     }, [])
@@ -125,7 +155,12 @@ const DoctorList = () => {
     }
 
     const columns = [
-    
+        {
+            key: "sNo",
+            header: "S.NO",
+            sortable: true,
+        },
+     
         {
             key: "id",
             header: "ID",
@@ -179,21 +214,26 @@ const DoctorList = () => {
             key: "actions",
             header: "Actions",
             sortable: false,
-            render: (_, row) => (
-                <div className="action-buttons">
-                    <button
-                        className="action-btn delete-action"
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            showDeleteConfirmation(row)
-                        }}
-                        title="Delete doctor"
-                    >
-                        <FaTrash size={14} />
-                    </button>
-                </div>
-            ),
-        },
+           render: (_, row) => (
+    <div className="action-buttons">
+        <button
+            className="action-btn delete-action"
+            onClick={(e) => {
+                e.stopPropagation();
+                if (deletePermission === "Disabled") {
+                    toast.error("You don't have access to delete. Please contact admin.");
+                    return;
+                }
+                showDeleteConfirmation(row);
+            }}
+            title="Delete doctor"
+        >
+            <FaTrash size={14} />
+        </button>
+    </div>
+)
+
+        }            
     ]
 
     return (
@@ -206,8 +246,8 @@ const DoctorList = () => {
 
                 {isLoading ? (
                     <div className="loading-indicator">
-                        <FaSpinner className="loading-spinner" />
-                        <span className="loader">Loading doctors data...</span>
+                        <div class="loader"></div>
+                        {/* <span className="loader">Loading doctors data...</span> */}
                     </div>
                 ) : error ? (
                     <div className="error-message">
@@ -230,6 +270,7 @@ const DoctorList = () => {
                         showUploadExcel={false}
                         showExport={false}
                         showDirectExport={true}
+                        showDownloadSubadmin ={false}
                         searchPlaceholder="Search doctors..."
                         exportFileName="doctors_list"
                         rowsPerPageOptions={[10, 25, 50]}

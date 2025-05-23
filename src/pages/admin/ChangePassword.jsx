@@ -1,59 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../layouts/AdminLayout';
-import { useNavigate } from 'react-router-dom'; 
 import { selectCurrentUser } from '../../features/auth/authSlice';
 import { FiLock, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { apiPost } from '../../services/api-helper';
 import './Profile.css';
 
 const ChangePassword = () => {
-    const navigate = useNavigate(); // Inside your component
+    const navigate = useNavigate();
     const user = useSelector(selectCurrentUser);
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
     });
-
     const [showPassword, setShowPassword] = useState({
         current: false,
         new: false,
-        confirm: false
+        confirm: false,
     });
-
     const [isLoading, setIsLoading] = useState(false);
     const [passwordError, setPasswordError] = useState('');
 
-    useEffect(() => {
-        if (user) {
-            setFormData(prev => ({
-                ...prev,
-                name: user.name || '',
-                email: user.email || '',
-                phone: user.phone || '',
-            }));
-        }
-    }, [user]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             [name]: value,
         }));
-
-        // Clear error when user types
-        if (name === 'confirmPassword' && passwordError) {
+        if (name === 'confirmPassword' || name === 'newPassword') {
             setPasswordError('');
         }
     };
 
     const togglePasswordVisibility = (field) => {
-        setShowPassword(prev => ({
+        setShowPassword((prev) => ({
             ...prev,
-            [field]: !prev[field]
+            [field]: !prev[field],
         }));
     };
 
@@ -62,17 +47,10 @@ const ChangePassword = () => {
             setPasswordError('Passwords do not match');
             return false;
         }
-
-        if (formData.newPassword.length < 8) {
-            setPasswordError('Password must be at least 8 characters');
+        if (formData.newPassword.length < 6) {
+            setPasswordError('Password must be at least 6 characters');
             return false;
         }
-
-        if (!/[A-Z]/.test(formData.newPassword) || !/[0-9]/.test(formData.newPassword)) {
-            setPasswordError('Password must contain at least one uppercase letter and one number');
-            return false;
-        }
-
         setPasswordError('');
         return true;
     };
@@ -80,41 +58,64 @@ const ChangePassword = () => {
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-
+    
+        if (!formData.currentPassword) {
+            setPasswordError('Current password is required.');
+            setIsLoading(false);
+            return;
+        }
+    
         if (!validatePassword()) {
             setIsLoading(false);
             return;
         }
-
+    
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Success case
-            toast.success('Password changed successfully!', {
-                position: "top-right",
-                autoClose: 2000,
-                onClose: () => {
-                    navigate('/admin/foot-exam'); // Redirect after toast closes
-                }
-            });
-
-            // Reset form
-            setFormData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            });
-
+            const payload = {
+                current_password: formData.currentPassword,
+                new_password: formData.newPassword,
+                new_password_confirmation: formData.confirmPassword,
+            };
+    
+            const res = await apiPost('/auth/update-admin-password', payload);
+    
+            // ✅ Check status by response message (since success is not present)
+            if (res?.message === 'Password updated successfully.') {
+                toast.success(res.message);
+    
+                setFormData({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+                setPasswordError('');
+    
+                setTimeout(() => {
+                    navigate('/admin/foot-exam');
+                }, 2000);
+            } else {
+                throw new Error(res?.message || 'Failed to update password.');
+            }
         } catch (error) {
-            toast.error('Failed to change password. Please try again.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                'Unable to update password.';
+    
+            toast.error(errorMessage);
+    
+            // ❌ Don't treat success message as a field error
+            if (!errorMessage.toLowerCase().includes('updated successfully')) {
+                setPasswordError(errorMessage);
+            }
         } finally {
             setIsLoading(false);
         }
     };
+    
+    
+    
+    
 
     return (
         <AdminLayout>
@@ -125,12 +126,12 @@ const ChangePassword = () => {
                 </div>
 
                 <form onSubmit={handlePasswordSubmit} className="security-form">
-                    {/* <div className="form-group form-group2">
+                    <div className="form-group form-group2">
                         <label>Current Password</label>
                         <div className="input-with-icon">
                             <FiLock className="input-icon" />
                             <input
-                                type={showPassword.current ? "text" : "password"}
+                                type={showPassword.current ? 'text' : 'password'}
                                 name="currentPassword"
                                 value={formData.currentPassword}
                                 onChange={handleChange}
@@ -141,19 +142,19 @@ const ChangePassword = () => {
                                 type="button"
                                 className="toggle-password"
                                 onClick={() => togglePasswordVisibility('current')}
-                                aria-label={showPassword.current ? "Hide password" : "Show password"}
+                                aria-label={showPassword.current ? 'Hide password' : 'Show password'}
                             >
                                 {showPassword.current ? <FiEyeOff /> : <FiEye />}
                             </button>
                         </div>
-                    </div> */}
+                    </div>
 
                     <div className="form-group form-group2">
                         <label>New Password</label>
                         <div className="input-with-icon">
                             <FiLock className="input-icon" />
                             <input
-                                type={showPassword.new ? "text" : "password"}
+                                type={showPassword.new ? 'text' : 'password'}
                                 name="newPassword"
                                 value={formData.newPassword}
                                 onChange={handleChange}
@@ -164,21 +165,18 @@ const ChangePassword = () => {
                                 type="button"
                                 className="toggle-password"
                                 onClick={() => togglePasswordVisibility('new')}
-                                aria-label={showPassword.new ? "Hide password" : "Show password"}
+                                aria-label={showPassword.new ? 'Hide password' : 'Show password'}
                             >
                                 {showPassword.new ? <FiEyeOff /> : <FiEye />}
                             </button>
                         </div>
                         <div className="password-strength">
-                            <div className={`strength-bar ${formData.newPassword.length > 0 ? 'active' : ''}`}></div>
-                            <div className={`strength-bar ${formData.newPassword.length >= 4 ? 'active' : ''}`}></div>
-                            <div className={`strength-bar ${formData.newPassword.length >= 8 &&
-                                    /[A-Z]/.test(formData.newPassword) &&
-                                    /[0-9]/.test(formData.newPassword) ? 'active' : ''
-                                }`}></div>
+                            <div className={`strength-bar ${formData.newPassword.length >= 6 ? 'active' : ''}`}></div>
+                            <div className={`strength-bar ${formData.newPassword.length >= 8 ? 'active' : ''}`}></div>
+                            <div className={`strength-bar ${formData.newPassword.length >= 10 ? 'active' : ''}`}></div>
                         </div>
                         <p className="password-hint">
-                            Password must be at least 8 characters with uppercase and number
+                            Password must be at least 6 characters
                         </p>
                     </div>
 
@@ -187,7 +185,7 @@ const ChangePassword = () => {
                         <div className="input-with-icon">
                             <FiLock className="input-icon" />
                             <input
-                                type={showPassword.confirm ? "text" : "password"}
+                                type={showPassword.confirm ? 'text' : 'password'}
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
@@ -199,7 +197,7 @@ const ChangePassword = () => {
                                 type="button"
                                 className="toggle-password"
                                 onClick={() => togglePasswordVisibility('confirm')}
-                                aria-label={showPassword.confirm ? "Hide password" : "Show password"}
+                                aria-label={showPassword.confirm ? 'Hide password' : 'Show password'}
                             >
                                 {showPassword.confirm ? <FiEyeOff /> : <FiEye />}
                             </button>

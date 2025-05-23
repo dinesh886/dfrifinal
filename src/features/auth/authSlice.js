@@ -1,73 +1,65 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
-// Get initial auth state from sessionStorage
 const getInitialAuthState = () => {
-  const adminUser = sessionStorage.getItem('adminUser');
-  const googleUser = sessionStorage.getItem('googleUser');
+  const sessionActive =
+    sessionStorage.getItem("userLoggedIn") === "true" ||
+    localStorage.getItem("userLoggedIn") === "true";
 
-  if (adminUser) {
-    const { user, token } = JSON.parse(adminUser);
+  if (!sessionActive) {
     return {
-      user,
-      token,
-      role: 'admin',
-      isAuthenticated: true,
+      user: null,
+      token: null,
+      role: null,
+      isAuthenticated: false,
       loading: false,
     };
   }
 
-  if (googleUser) {
-    const data = JSON.parse(googleUser);
+  try {
+    const userInfo = JSON.parse(
+      sessionStorage.getItem("userInfo") || localStorage.getItem("userInfo")
+    );
+    const role = userInfo?.role;
+
     return {
-      user: {
-        name: data.name,
-        email: data.email,
-        picture: data.picture, // ✅ correctly nested inside user
-      },
-      token: data.token,
-      role: 'user',
-      isAuthenticated: true,
+      user: userInfo,
+      token: "session-auth", // Placeholder token
+      role: role || null,
+      isAuthenticated: !!userInfo,
+      loading: false,
+    };
+  } catch (error) {
+    console.error("Error parsing auth data:", error);
+    return {
+      user: null,
+      token: null,
+      role: null,
+      isAuthenticated: false,
       loading: false,
     };
   }
-
-  return {
-    user: null,
-    token: null,
-    role: null,
-    isAuthenticated: false,
-    loading: false,
-  };
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: getInitialAuthState(),
   reducers: {
     setCredentials: (state, action) => {
-      const { user, token, role } = action.payload;
-
+      const { user, token, role, rememberMe } = action.payload;
       state.user = user;
-      state.token = token;
+      state.token = token || "session-auth";
       state.role = role;
       state.isAuthenticated = true;
       state.loading = false;
 
-      if (role === 'admin') {
-        sessionStorage.setItem('adminUser', JSON.stringify({ user, token }));
-        sessionStorage.removeItem('googleUser');
-      } else {
-        sessionStorage.setItem(
-          'googleUser',
-          JSON.stringify({
-            name: user.name,
-            email: user.email,
-            picture: user.picture,
-            token: token,
-          })
-        );
-        sessionStorage.removeItem('adminUser');
-      }
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("userInfo", JSON.stringify({ ...user, role }));
+      storage.setItem("userLoggedIn", "true");
+      storage.setItem("lastActivity", Date.now().toString());
+
+      const otherStorage = rememberMe ? sessionStorage : localStorage;
+      otherStorage.removeItem("userInfo");
+      otherStorage.removeItem("userLoggedIn");
     },
     logout: (state) => {
       state.user = null;
@@ -75,6 +67,8 @@ const authSlice = createSlice({
       state.role = null;
       state.isAuthenticated = false;
       state.loading = false;
+
+      localStorage.clear();
       sessionStorage.clear();
     },
     setLoading: (state, action) => {
@@ -83,15 +77,12 @@ const authSlice = createSlice({
   },
 });
 
-// Export actions
 export const { setCredentials, logout, setLoading } = authSlice.actions;
 
-// Selectors
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectCurrentToken = (state) => state.auth.token;
 export const selectCurrentRole = (state) => state.auth.role;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthLoading = (state) => state.auth.loading;
 
-// Export reducer
 export default authSlice.reducer;

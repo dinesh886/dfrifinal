@@ -18,6 +18,8 @@ import {
     Lock,
     Users,
     Database,
+    UserLock ,
+    UserRoundPlus,
     Download
 } from "lucide-react";
 import logo from '../assets/images/logo.png'
@@ -47,12 +49,26 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
             setShowTooltips(!isOpen);
         }
     }, [isOpen, isMobile]);
+    // Get role from sessionStorage
+    // Get role from sessionStorage and normalize
+    const role = (sessionStorage.getItem('adminRole') || 'admin').toLowerCase();
+    console.log('Admin Role:', role); // Debug role value
 
+    // Prevent rendering if not logged in
+    if (!sessionStorage.getItem('adminLoggedIn')) {
+        return null; // Or redirect to login
+    }
     const menuItems = [
         { path: '/admin/foot-exam', icon: <FileText />, label: 'Foot Exam' },
         { path: '/admin/doctor-list', icon: <Users />, label: 'Doctor List' },
-        { path: '/admin/profile', icon: <UserCog />, label: 'Profile' },
-        { path: '/admin/change-password', icon: <Lock />, label: 'Change Password' },
+      
+        ...(role !== 'subadmin' ? [
+         
+            { path: '/admin/profile', icon: <UserCog />, label: 'Profile' },
+            { path: '/admin/change-password', icon: <Lock />, label: 'Change Password' },
+            { path: '/admin/SubadminForm', icon: <UserRoundPlus />, label: 'Add Subadmin' },
+            { path: '/admin/SubAdminList', icon: <UserLock />, label: 'SubAdmins List' },
+        ] : [])
     ];
 
     return (

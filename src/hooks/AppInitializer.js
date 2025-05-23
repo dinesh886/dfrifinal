@@ -3,31 +3,27 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../features/auth/authSlice';
 
-const useAuthInitialization = () => {
+const AppInitializer = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const adminUser = localStorage.getItem('adminUser');
-        const googleUser = localStorage.getItem('googleUser');
+    try {
+      const adminUser = localStorage.getItem('adminUser');
+      const googleUser = localStorage.getItem('googleUser');
 
-        if (adminUser) {
-          const { user, token } = JSON.parse(adminUser);
-          dispatch(setCredentials({ user, token, role: 'admin' }));
-        } else if (googleUser) {
-          const user = JSON.parse(googleUser);
-          dispatch(setCredentials({ user, token: user.token, role: 'user' }));
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        dispatch(authLoaded());
+      if (adminUser) {
+        const { user, token } = JSON.parse(adminUser);
+        dispatch(setCredentials({ user, token, role: 'admin' }));
+      } else if (googleUser) {
+        const user = JSON.parse(googleUser);
+        dispatch(setCredentials({ user, token: user.token, role: 'doctor' }));
       }
-    };
-
-    initializeAuth();
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+    }
   }, [dispatch]);
+
+  return children;
 };
 
-export default useAuthInitialization;
+export default AppInitializer;

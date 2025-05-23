@@ -48,7 +48,7 @@ const UserHeader = () => {
             <div className="user-header-content">
                 <div className="user-logo-container">
                     <div className="logo-placeholder">
-                        <Link to="/user/dashboard">
+                        <Link to="/user/rssdi-save-the-feet-2.0">
                             <img src={logo} alt="Logo" />
                         </Link>
 
@@ -58,7 +58,7 @@ const UserHeader = () => {
 
                 <div className="page-header">
                     <h1 className='user-dashboard-heading'>Registry of people with Diabetic Foot Ulcers in India</h1>
-                    <p className='user-dashboard-heading'>Proforma - Participant Information (baseline)</p>
+                    {/* <p className='user-dashboard-heading'>Proforma - Participant Information (baseline)</p> */}
                     
                 </div>
 
@@ -87,7 +87,8 @@ const UserHeader = () => {
                                         <FaUserCircle className="user-profile-icon" />
                                     )}
 
-                                <span className="user-profile-name">{user.name || user.email}</span>
+                                <span className="user-profile-name">{user.email}</span>
+                                
                                 <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
                             </a>
 

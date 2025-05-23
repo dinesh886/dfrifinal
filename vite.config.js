@@ -4,7 +4,7 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/dfriapp/', // Base path for deployment
+  base: '/dfrifinal3/', // Base path for deployment
   plugins: [react()],
   resolve: {
     alias: {

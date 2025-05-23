@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import './StepForm.css'; 
 import LeftFoot from '../../../assets/images/leftfoot.jpg'
 import RightFoot from '../../../assets/images/rightfoot.jpg'
-
+import { FiDownloadCloud, FiFileText } from 'react-icons/fi';
+import { ArrowRightToLine } from 'lucide-react';
 import { Upload } from 'lucide-react';
+import DocumentforTest from '.././../../assets/DocumentforTest.pdf';
+
 const StepForm3 = ({formData, handleChange, errors}) => {
 
   const handleSubmit = (e) => {
@@ -12,29 +15,55 @@ const StepForm3 = ({formData, handleChange, errors}) => {
     // Handle form submission
   };
 
+  const [selectedTest, setSelectedTest] = useState(null);
+
   const monofilamentPoints = ['A', 'B', 'C'];
-  
+  const tuningForkPoints = ['Medial Malleolus', 'Lateral Malleolus', 'Big Toe'];
+ 
+
+ 
     const [previewImage, setPreviewImage] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
   
-    const handleImageChange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-  
-      if (file.size > 1024 * 1024) {
-        setPreviewImage(null);
-        setErrorMsg('Image must be smaller than 1MB');
-        e.target.value = ''; // Clear input field
-      } else {
-        setErrorMsg('');
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviewImage(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
 
+    if (!file) {
+      setErrorMsg(null);
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg("Only JPG, PNG, or PDF files are allowed");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("File size exceeds 5MB");
+      return;
+    }
+
+    setErrorMsg(null);
+
+    // If it's an image, create a preview
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // PDF or other non-previewable file types
+      setPreviewImage(null);
+    }
+
+    handleChange(
+      { target: { name: "footImage", value: file } },
+      "section3"
+    );
+  };
+    
   return (
     <div className="medical-add-container">
       {/* <div className="medical-add-header">
@@ -341,111 +370,302 @@ const StepForm3 = ({formData, handleChange, errors}) => {
             </div>
           </div>
         </div>
-
+      
         {/* Neurologic Exam Section */}
         <div className="medical-add-section">
-          <h2 className="medical-add-section-title">Neurologic Exam (10g Monofilament Test)</h2>
-          <label className="subtitle required">Is the patient responsive to 10g monofilament?</label>
+          <h2 className="medical-add-section-title">Neurologic Exam</h2>
+          {/* Download PDF Link */}
+          <div className="medical-label-download-wrapper medical-label-download-wrapper2 pdfdownlaod">
+            <label className="medical-add-label label-with-arrow">
+              Download & Refer the document for tests
+            
+            </label>
 
-          {/* First Row */}
-          <div className="medical-add-row align-items-center medical-add-row">
-            <div className="col-md-6">
-              <div className="foot-image-container text-center">
-                <img
-                  src={LeftFoot}
-                  alt="Foot monofilament test points 1"
-                  className="img-fluid foot-diagram"
+            <a
+              href={DocumentforTest}
+              download="DocumentforTest.pdf"
+              className="action-btn download-excel"
+            >
+              <FiDownloadCloud className="download-icon download-icon2" />
+          Download document for tests
+            </a>
+          </div>
+
+          {/* Always show test type selection */}
+          <div className="test-type-selector mb-4">
+            <label className="subtitle required">Select Test Type:</label>
+            <div className="medical-add-radio-group">
+              <label className='medical-add-radio-label'>
+                <input
+                  type="radio"
+                  name="testType"
+                  value="monofilament"
+                  checked={formData.section3.testType === 'monofilament'}
+                  onChange={(e) => handleChange(e, 'section3')}
+                  className="medical-add-radio-button"
                 />
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="monofilament-test-options">
-                {monofilamentPoints.map((point) => (
-                  <div className="monofilament-point" key={`left-${point}`}>
-                    <span className="point-label">{point}</span>
-                    <div className="medical-add-radio-group">
-                      <label className='medical-add-radio-label'>
-                        <input
-                          type="radio"
-                          name={`monofilamentLeft${point}`}
-                          value="yes"
-                          checked={formData.section3[`monofilamentLeft${point}`] === 'yes'}
-                         onChange={(e) => handleChange(e, 'section3')}
-                          className="medical-add-radio-button"
-                          required
-                        />
-                        <span className="medical-add-radio-button-label">Yes</span>
-                      </label>
-                      <label className='medical-add-radio-label'>
-                        <input
-                          type="radio"
-                          name={`monofilamentLeft${point}`}
-                          value="no"
-                          checked={formData.section3[`monofilamentLeft${point}`] === 'no'}
-                         onChange={(e) => handleChange(e, 'section3')}
-                          className="medical-add-radio-button"
-                          required
-                        />
-                        <span className="medical-add-radio-button-label">No</span>
-                      </label>
-                      {errors[`monofilamentLeft${point}`] && <span className="error-message">{errors[`monofilamentLeft${point}`]}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                <span className="medical-add-radio-button-label">10g Monofilament Test</span>
+              </label>
+
+              <label className='medical-add-radio-label'>
+                <input
+                  type="radio"
+                  name="testType"
+                  value="tuningFork"
+                  checked={formData.section3.testType === 'tuningFork'}
+                  onChange={(e) => handleChange(e, 'section3')}
+                  className="medical-add-radio-button"
+                />
+                <span className="medical-add-radio-button-label">128Hz Tuning Fork Test</span>
+              </label>
+
+              {errors.testType && <span className="error-message">{errors.testType}</span>}
             </div>
           </div>
 
-          {/* Second Row */}
-          <div className="row align-items-center medical-add-row">
-            <div className="col-md-6">
-              <div className="foot-image-container text-center">
-                <img
-                  src={RightFoot}
-                  alt="Foot monofilament test points 2"
-                  className="img-fluid foot-diagram"
-                />
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="monofilament-test-options">
-                {monofilamentPoints.map((point) => (
-                  <div className="monofilament-point" key={`right-${point}`}>
-                    <span className="point-label ">{point}</span>
-                    <div className="medical-add-radio-group">
-                      <label className='medical-add-radio-label'>
-                        <input
-                          type="radio"
-                          name={`monofilamentRight${point}`}
-                          value="yes"
-                          checked={formData.section3[`monofilamentRight${point}`] === 'yes'}
-                         onChange={(e) => handleChange(e, 'section3')}
-                          className="medical-add-radio-button"
-                          required
-                        />
-                        <span className="medical-add-radio-button-label">Yes</span>
-                      </label>
-                      <label className='medical-add-radio-label'>
-                        <input
-                          type="radio"
-                          name={`monofilamentRight${point}`}
-                          value="no"
-                          checked={formData.section3[`monofilamentRight${point}`] === 'no'}
-                         onChange={(e) => handleChange(e, 'section3')}
-                          className="medical-add-radio-button"
-                          required
-                        />
-                        <span className="medical-add-radio-button-label">No</span>
-                      </label>
-                      {errors[`monofilamentRight${point}`] && (<span className="error-message">{errors[`monofilamentRight${point}`]}</span>
-                       )}
-                    </div>
+
+
+          {/* Conditionally show selected test fields */}
+          {formData.section3.testType === 'monofilament' && (
+            <>
+              <label className="subtitle required">Is the patient responsive to 10g monofilament?</label>
+
+              {/* First Row - Left Foot */}
+              <div className="medical-add-row align-items-center medical-add-row">
+                <div className="col-md-6">
+                  <div className="foot-image-container text-center">
+                    <label className="subtitle required right-foot">Right Foot</label>
+                    <img
+                      src={LeftFoot}
+                      alt="Foot monofilament test points 1"
+                      className="img-fluid foot-diagram"
+                    />
                   </div>
-                ))}
+                </div>
+                <div className="col-md-6">
+                  <div className="monofilament-test-options">
+                    {monofilamentPoints.map((point) => (
+                      <div className="monofilament-point" key={`left-${point}`}>
+                        <span className="point-label">{point}</span>
+                        <div className="medical-add-radio-group">
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentLeft${point}`}
+                              value="yes"
+                              checked={formData.section3[`monofilamentLeft${point}`] === 'yes'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Yes</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentLeft${point}`}
+                              value="no"
+                              checked={formData.section3[`monofilamentLeft${point}`] === 'no'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">No</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentLeft${point}`}
+                              value="not_tested"
+                              checked={formData.section3[`monofilamentLeft${point}`] === 'not_tested'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Not tested due to ulcer</span>
+                          </label>
+                          {errors[`monofilamentLeft${point}`] && (
+                            <span className="error-message">{errors[`monofilamentLeft${point}`]}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Second Row - Right Foot */}
+              <div className="row align-items-center medical-add-row">
+                <div className="col-md-6">
+                  <div className="foot-image-container text-center">
+                    <label className="subtitle required right-foot">Left Foot</label>
+                    <img
+                      src={RightFoot}
+                      alt="Foot monofilament test points 2"
+                      className="img-fluid foot-diagram"
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="monofilament-test-options">
+                    {monofilamentPoints.map((point) => (
+                      <div className="monofilament-point" key={`right-${point}`}>
+                        <span className="point-label">{point}</span>
+                        <div className="medical-add-radio-group">
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentRight${point}`}
+                              value="yes"
+                              checked={formData.section3[`monofilamentRight${point}`] === 'yes'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Yes</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentRight${point}`}
+                              value="no"
+                              checked={formData.section3[`monofilamentRight${point}`] === 'no'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">No</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`monofilamentRight${point}`}
+                              value="not_tested"
+                              checked={formData.section3[`monofilamentRight${point}`] === 'not_tested'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Not tested due to ulcer</span>
+                          </label>
+                          {errors[`monofilamentRight${point}`] && (
+                            <span className="error-message">{errors[`monofilamentRight${point}`]}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {formData.section3.testType === 'tuningFork' && (
+            <>
+              {/* <label className="point-label required">128Hz Tuning Fork Test Results</label> */}
+
+              {/* Right Foot */}
+              <div className="medical-add-row">
+                <div className="col-md-12">
+                  <h4 className="foot-title right-foot">Right Foot</h4>
+                  <div className="tuning-fork-test-options">
+                    {tuningForkPoints.map((point) => (
+                      <div className="tuning-fork-point subtitle" key={`right-${point}`}>
+                        <span className="point-label">{point}</span>
+                        <div className="medical-add-radio-group">
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkRight${point.replace(/\s+/g, '')}`}
+                              value="yes"
+                              checked={formData.section3[`tuningForkRight${point.replace(/\s+/g, '')}`] === 'yes'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Yes</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkRight${point.replace(/\s+/g, '')}`}
+                              value="no"
+                              checked={formData.section3[`tuningForkRight${point.replace(/\s+/g, '')}`] === 'no'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">No</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkRight${point.replace(/\s+/g, '')}`}
+                              value="not_tested"
+                              checked={formData.section3[`tuningForkRight${point.replace(/\s+/g, '')}`] === 'not_tested'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Not tested</span>
+                          </label>
+                          {errors[`tuningForkRight${point.replace(/\s+/g, '')}`] && (
+                            <span className="error-message">{errors[`tuningForkRight${point.replace(/\s+/g, '')}`]}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Left Foot */}
+              <div className="medical-add-row">
+                <div className="col-md-12">
+                  <h4 className="foot-title right-foot">Left Foot</h4>
+                  <div className="tuning-fork-test-options">
+                    {tuningForkPoints.map((point) => (
+                      <div className="tuning-fork-point" key={`left-${point}`}>
+                        <span className="point-label">{point}</span>
+                        <div className="medical-add-radio-group">
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkLeft${point.replace(/\s+/g, '')}`}
+                              value="yes"
+                              checked={formData.section3[`tuningForkLeft${point.replace(/\s+/g, '')}`] === 'yes'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Yes</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkLeft${point.replace(/\s+/g, '')}`}
+                              value="no"
+                              checked={formData.section3[`tuningForkLeft${point.replace(/\s+/g, '')}`] === 'no'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">No</span>
+                          </label>
+                          <label className='medical-add-radio-label'>
+                            <input
+                              type="radio"
+                              name={`tuningForkLeft${point.replace(/\s+/g, '')}`}
+                              value="not_tested"
+                              checked={formData.section3[`tuningForkLeft${point.replace(/\s+/g, '')}`] === 'not_tested'}
+                              onChange={(e) => handleChange(e, 'section3')}
+                              className="medical-add-radio-button"
+                            />
+                            <span className="medical-add-radio-button-label">Not tested</span>
+                          </label>
+                          {errors[`tuningForkLeft${point.replace(/\s+/g, '')}`] && (
+                            <span className="error-message">{errors[`tuningForkLeft${point.replace(/\s+/g, '')}`]}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
+
+
 
         {/* Musculoskeletal Exam Section */}
         <div className="medical-add-section">
@@ -515,7 +735,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="hairGrowth"
                     value="yes"
                     checked={formData.section3.hairGrowth === 'yes'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -527,7 +747,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="hairGrowth"
                     value="no"
                     checked={formData.section3.hairGrowth === 'no'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -546,7 +766,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="pulsesPalpable"
                     value="yes"
                     checked={formData.section3.pulsesPalpable === 'yes'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -558,7 +778,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="pulsesPalpable"
                     value="no"
                     checked={formData.section3.pulsesPalpable === 'no'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -566,21 +786,20 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                 </label>
                 {errors.pulsesPalpable && <span className="error-message">{errors.pulsesPalpable}</span>}
               </div>
-
             </div>
           </div>
 
           <div className="medical-add-row">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Is the temperature of the skin cold/warm/normal?</label>
-              <div className="medical-add-radio-group">
+               <div className="medical-add-radio-group">
                 <label className="medical-add-radio-label">
                   <input
                     type="radio"
                     name="skinTemperature"
                     value="cold"
                     checked={formData.section3.skinTemperature === 'cold'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -592,7 +811,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="skinTemperature"
                     value="warm"
                     checked={formData.section3.skinTemperature === 'warm'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -604,7 +823,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     name="skinTemperature"
                     value="normal"
                     checked={formData.section3.skinTemperature === 'normal'}
-                   onChange={(e) => handleChange(e, 'section3')}
+                    onChange={(e) => handleChange(e, 'section3')}
                     className="medical-add-radio-button"
                     required
                   />
@@ -615,7 +834,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
             </div>
           </div>
         </div>
-
+     
         {/* Foot Image Upload */}
         <div className="medical-add-section">
           <h2 className="medical-add-section-title">Patient's Foot Image (Optional)</h2>
@@ -623,11 +842,10 @@ const StepForm3 = ({formData, handleChange, errors}) => {
           <div className="medical-add-row">
             <div className="medical-add-group">
               <div className="medical-image-preview-card">
-                {/* Image Preview and Remove Button - shown only when image exists */}
-                {previewImage ? (
+                {previewImage || formData.section3.footImagePreview ? (
                   <div className="medical-image-preview-wrapper">
                     <img
-                      src={previewImage}
+                      src={previewImage || formData.section3.footImagePreview}
                       alt="Foot preview"
                       className="medical-image-preview"
                     />
@@ -637,25 +855,28 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                         className="medical-image-remove-btn"
                         onClick={() => {
                           setPreviewImage(null);
-                          handleChange({
-                            target: { name: 'footImage', value: null },
-                          }, 'section2');
+                          handleChange(
+                            { target: { name: 'footImage', value: null } },
+                            'section3'
+                          );
                         }}
                       >
                         <svg viewBox="0 0 24 24" width="18" height="18">
-                          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                          <path
+                            fill="currentColor"
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
                         </svg>
                         Remove
                       </button>
                     </div>
                   </div>
                 ) : (
-                  /* Upload Area - shown only when no image exists */
                   <label className="medical-upload-card">
                     <input
                       type="file"
                       name="footImage"
-                      accept="image/*"
+                        accept="image/*,application/pdf"
                       onChange={handleImageChange}
                       className="medical-upload-input"
                     />
@@ -672,8 +893,6 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     </div>
                   </label>
                 )}
-
-                {/* Error Message */}
                 {errorMsg && (
                   <div className="medical-add-image-upload-error">
                     <svg viewBox="0 0 24 24" width="16" height="16">

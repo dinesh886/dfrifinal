@@ -1,9 +1,13 @@
+
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { setCredentials } from '../features/auth/authSlice';
-import { FiLogIn, FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiDownload, FiSettings, FiCheckCircle } from 'react-icons/fi';
+import { FiLogIn, FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiDownload, FiSettings } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import { apiPost } from '../services/api-helper';
 import './AdminLogin.css';
+
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -14,42 +18,56 @@ const AdminLogin = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-
-    // Add this to your existing AdminLogin component's handleSubmit:
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setIsLoading(true);
+        setError("");
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const validEmail = 'admin@admin.com';
-            const validPassword = 'admin123';
+            const loginData = {
+                username: email,
+                password: password,
+            };
 
-            if (email === validEmail && password === validPassword) {
-                const authData = {
-                    user: {
-                        email: validEmail,
-                        // name: 'Admin User'
-                    },
-                    token: 'admin-jwt-token',
-                    role: 'admin'
-                };
+            const response = await apiPost('auth/admin-login-verify', loginData);
+            console.log('Login response:', response);
 
-                dispatch(setCredentials(authData));
-                const from = location.state?.from?.pathname || '/admin/foot-exam';
-                navigate(from, { replace: true });
+            if (response?.message === 'Login successful.') {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminEmail', response.username);
+                sessionStorage.setItem('adminId', response.admin_id);
+                sessionStorage.setItem('adminRole', response.role?.toLowerCase() || 'admin'); // Normalize role
+
+                dispatch(setCredentials({
+                    user: { username: response.username, admin_id: response.admin_id },
+                   
+                    token: response.token ?? '',
+                    role: response.role?.toLowerCase() || 'admin', // Normalize role
+                    rememberMe: false
+                }));
+
+                toast.success('Login successful!');
+                navigate('/admin/foot-exam');
             } else {
-                setError('Invalid email or password');
+                setError(response?.message || "Invalid credentials");
+                toast.error(response?.message || 'Login failed.');
             }
-        } catch (err) {
-            setError('Login failed. Please try again.');
+        } catch (error) {
+            console.error('Login error:', error);
+            const message = error?.message || "Server error. Please try again.";
+            setError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
     };
+    
+    
 
+      
 
+    
+    
     return (
         <div className="login-container">
             {/* Left Side - Information Panel */}
@@ -59,8 +77,8 @@ const AdminLogin = () => {
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L20 9v6l-8 4-8-4V9l8-4.2zM12 15a3 3 0 110-6 3 3 0 010 6z" />
                         </svg>
-                        <h1>RSSDI Save the Feet 2.0 </h1>
-                        <p className="admin-subtitle"> [ Admin Login ]</p>
+                        <h1>RSSDI Save the Feet 2.0</h1>
+                        <p className="admin-subtitle">[ Admin Login ]</p>
                     </div>
 
                     <div className="features">
@@ -94,11 +112,6 @@ const AdminLogin = () => {
                             </div>
                         </div>
                     </div>
-
-                    
-
-
-
                 </div>
             </div>
 
@@ -154,17 +167,10 @@ const AdminLogin = () => {
                             </div>
                         </div>
 
-                        {/* <div className="form-options">
-                            <a href="/forgot-password" className="forgot-password">
-                                Forgot password?
-                            </a>
-                        </div> */}
-
                         <button
                             type="submit"
                             className="login-button"
                             disabled={isLoading}
-
                         >
                             {isLoading ? (
                                 <span className="spinner"></span>

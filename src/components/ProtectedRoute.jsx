@@ -1,34 +1,47 @@
 // components/ProtectedRoute.jsx
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import {
-    selectIsAuthenticated,
-    selectCurrentRole,
-    selectAuthLoading,
-} from '../features/auth/authSlice';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated, selectCurrentRole, selectAuthLoading } from "../features/auth/authSlice";
+import { useEffect, useState } from "react";
+import { checkSessionActive } from "../utils/sessionManager";
 
-const ProtectedRoute = ({ allowedRoles, redirectPath = null }) => {
+const ProtectedRoute = ({ allowedRoles = ["doctor", "admin"], redirectPath = "/user-login" }) => {
     const isAuthenticated = useSelector(selectIsAuthenticated);
-    const role = useSelector(selectCurrentRole);
-    const loading = useSelector(selectAuthLoading);
+    const userRole = useSelector(selectCurrentRole);
+    const authLoading = useSelector(selectAuthLoading);
     const location = useLocation();
+    const [sessionChecked, setSessionChecked] = useState(false);
 
-    if (loading) {
-        return <div>Loading authentication...</div>;
+    useEffect(() => {
+        if (!authLoading) {
+            setSessionChecked(true);
+        }
+    }, [authLoading]);
+
+    if (authLoading || !sessionChecked) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
     }
 
-    const loginRedirect = redirectPath || (role === 'admin' ? '/admin' : '/user-login');
+    const isSessionActive = checkSessionActive();
 
-    if (!isAuthenticated) {
-        return <Navigate to={loginRedirect} state={{ from: location }} replace />;
+    if (!isAuthenticated || !isSessionActive) {
+        return <Navigate to={redirectPath} state={{ from: location }} replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(role)) {
+    if (!allowedRoles.includes(userRole)) {
         return <Navigate to="/unauthorized" replace />;
     }
 
     return <Outlet />;
 };
 
-export default ProtectedRoute;
+
+
+
+
+
+export default ProtectedRoute

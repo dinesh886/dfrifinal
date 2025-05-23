@@ -6,37 +6,34 @@ import {
     FaSearch, FaDownload, FaPlus, FaFileUpload,
     FaFileDownload, FaFilter, FaTimes, FaFileExcel
 } from "react-icons/fa";
-import { Download, Upload, FilePlus, FileText,MousePointerClick   } from "lucide-react";
-import { Hand } from 'lucide-react'; // Use the "Hand" icon
-
+import { Download, Upload, FilePlus, FileText, MousePointerClick } from "lucide-react";
+import { Hand } from 'lucide-react';
 import { CiFilter } from "react-icons/ci";
 import { BsDownload } from "react-icons/bs";
 import { IoFilterOutline } from "react-icons/io5";
-import { GoSortAsc } from "react-icons/go";
-import { GoSortDesc } from "react-icons/go";
+import { GoSortAsc, GoSortDesc } from "react-icons/go";
 import { DatePicker } from "antd";
 import * as XLSX from "xlsx";
 import ExportModal from "./ExportModal";
 import { toast } from 'react-toastify';
-
 import "./DataTable.css";
 import FileUploadConfirmationModal from "./FileUploadConfirmationModal";
-
+import { apiGet } from "../services/api-helper"; // Ensure this is available
+import { handleExport } from "../utils/exportPatients";
+import { apiRequest } from "../services/api-helper"; // Added to imports
 const DataTable = ({
     data = [],
     columns = [],
-    // Button visibility controls
     showSearch = true,
     showAddNew = true,
     showDownloadSample = true,
     showUploadExcel = true,
     showExport = true,
     showDirectExport = true,
-    // Action handlers
+    showDownloadSubadmin = true,
     onAddNew,
     onDownloadSample,
     onUploadExcel,
-    // Other props
     searchPlaceholder = "Search...",
     exportFileName = "data_export",
     rowsPerPageOptions = [10, 25, 50],
@@ -66,6 +63,97 @@ const DataTable = ({
         message: '',
         type: 'success'
     });
+    const [isExporting, setIsExporting] = useState(false);
+    const [permissions, setPermissions] = useState({
+        download_patient_data: "Disabled",
+        download_doctor_data: "Disabled",
+    });
+
+    const fetchPermissions = async () => {
+        try {
+            const adminId = sessionStorage.getItem("adminId");
+            const role = sessionStorage.getItem("adminRole"); // Changed from "role" to "adminRole" to match your login code
+
+            console.log("Fetching permissions for:", { adminId, role }); // Debug log
+
+            if (!adminId) {
+                throw new Error("Admin ID not found in session");
+            }
+
+            if (!role) {
+                throw new Error("User role not found in session");
+            }
+
+            // Admins get all permissions by default
+            if (role === "admin") {
+                console.log("User is admin, granting all permissions"); // Debug log
+                setPermissions({
+                    download_patient_data: "Enabled",
+                    download_doctor_data: "Enabled",
+                });
+                return;
+            }
+
+            // For subadmins, fetch permissions from API
+            console.log("Fetching permissions for subadmin"); // Debug log
+            const response = await apiRequest(`/subadmins/${adminId}/permissions`);
+
+            if (!response) {
+                throw new Error("Empty response from permissions API");
+            }
+
+            console.log("Permissions API response:", response); // Debug log
+
+            setPermissions({
+                download_patient_data: response.permissions?.download_patient_data || "Disabled",
+                download_doctor_data: response.permissions?.download_doctor_data || "Disabled",
+            });
+
+        } catch (error) {
+            console.error("Permission fetch error:", error);
+
+            // More specific error messages
+            let errorMessage = "Failed to fetch permissions";
+            if (error.message.includes("Network Error")) {
+                errorMessage = "Network error - please check your connection";
+            } else if (error.response?.status === 401) {
+                errorMessage = "Session expired - please login again";
+            } else if (error.response?.status === 403) {
+                errorMessage = "You don't have permission to access this resource";
+            }
+
+            setPermissions({
+                download_patient_data: "Disabled",
+                download_doctor_data: "Disabled",
+            });
+
+            toast.error(`${errorMessage}. Contact admin.`);
+        }
+    };
+
+    useEffect(() => {
+        // Fetch permissions when component mounts and when showExport/showDirectExport changes
+        if (showExport || showDirectExport) {
+            fetchPermissions();
+        }
+    }, [showExport, showDirectExport]);
+    // This triggers the actual export
+    const onExport = async (filters) => {
+        if (permissions.download_patient_data === "Disabled") {
+            toast.error("You don't have access to download patient data. Please contact admin.");
+            return;
+        }
+        setIsExporting(true);
+        try {
+            await handleExport(filters, "PatientDataExport", setShowExportModal);
+            toast.success("Patient data exported successfully!");
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error("Failed to export patient data");
+        } finally {
+            setIsExporting(false);
+        }
+    };
     const [uploadedData, setUploadedData] = useState(() => {
         if (typeof window !== 'undefined') {
             const savedData = localStorage.getItem(`${exportFileName}_uploadedData`);
@@ -80,9 +168,6 @@ const DataTable = ({
         }
     }, [uploadedData, exportFileName]);
 
-
-
-    // Clear all data (both uploaded and original)
     const clearAllData = () => {
         setUploadedData([]);
         if (typeof window !== 'undefined') {
@@ -91,14 +176,11 @@ const DataTable = ({
         toast.success("All data has been cleared");
     };
 
-
-    
-    // Add serial numbers to data
     const combinedData = useMemo(() => {
         const combined = [...data, ...uploadedData];
         return combined.map((item, index) => ({
             ...item,
-            'S.No': index + 1 // Auto-generate serial numbers
+            'S.No': index + 1
         }));
     }, [data, uploadedData]);
 
@@ -119,7 +201,6 @@ const DataTable = ({
             result.sort((a, b) => {
                 const aValue = a[sortConfig.key];
                 const bValue = b[sortConfig.key];
-
                 if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
                 if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
@@ -135,7 +216,6 @@ const DataTable = ({
         currentPage * rowsPerPage
     );
 
-    // Check if table is completely empty (no data at all)
     const isTableEmpty = combinedData.length === 0;
 
     const requestSort = (key) => {
@@ -154,70 +234,78 @@ const DataTable = ({
         }
     };
 
-    const handleFileUpload = (event) => {
+    const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
         setLoadingStates(prev => ({ ...prev, uploadExcel: true }));
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
+        try {
+            // Read the Excel file
+            const data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(new Uint8Array(e.target.result));
+                reader.onerror = (error) => reject(error);
+                reader.readAsArrayBuffer(file);
+            });
 
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                    raw: false,
-                    dateNF: 'dd-mm-yyyy'
+            // Parse Excel data
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert to JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                raw: false,
+                dateNF: 'dd-mm-yyyy'
+            });
+
+            // Prepare data for API
+            const formattedData = jsonData.map((row) => {
+                const formattedRow = {};
+                columns.forEach(col => {
+                    const excelKey = Object.keys(row).find(
+                        key => key.toLowerCase() === col.header?.toLowerCase() ||
+                            key.toLowerCase() === col.key?.toLowerCase()
+                    );
+                    formattedRow[col.key] = excelKey ? row[excelKey] : '';
                 });
+                return formattedRow;
+            });
 
-                // Get all existing serial numbers
-                const existingSerials = uploadedData.map(item =>
-                    parseInt(item.sNo || item.serialNo || item['S.No'] || 0)
-                ).filter(serial => !isNaN(serial));
+            // Send to API
+            const response = await apiRequest('/patients/import', {
+                method: 'POST',
+                body: JSON.stringify({ patients: formattedData }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                // Find the highest serial number
-                const maxSerial = existingSerials.length > 0 ? Math.max(...existingSerials) : 0;
+            if (response.success) {
+                toast.success(`${formattedData.length} patients imported successfully!`);
 
-                // Start counting from next available number
-                let currentSerial = maxSerial + 1;
+                // Optionally update local state if needed
+                const withSerial = formattedData.map((item, index) => ({
+                    ...item,
+                    sNo: index + 1,
+                    id: `imported-${Date.now()}-${index}`
+                }));
 
-                const transformedData = jsonData.map((row, index) => {
-                    const transformedRow = {};
-                    columns.forEach(col => {
-                        const excelKey = Object.keys(row).find(
-                            key => key.toLowerCase() === col.header?.toLowerCase() ||
-                                key.toLowerCase() === col.key?.toLowerCase()
-                        );
-                        transformedRow[col.key] = excelKey ? row[excelKey] : '';
-                    });
-
-                    // Assign new sequential serial number
-                    transformedRow.sNo = currentSerial++;
-
-                    return {
-                        ...transformedRow,
-                        id: `uploaded-${Date.now()}-${index}`
-                    };
-                });
-
-                setPreviewData(transformedData);
-                setSelectedFile(file);
-                setShowUploadConfirmModal(true);
-            } catch (error) {
-                console.error("Error processing Excel file:", error);
-                toast.error("Error processing Excel file. Please check the format.");
-            } finally {
-                setLoadingStates(prev => ({ ...prev, uploadExcel: false }));
-                event.target.value = ''; // reset input
+                setUploadedData(prev => [...prev, ...withSerial]);
+            } else {
+                throw new Error(response.message || 'Failed to import patients');
             }
-        };
-        reader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error("Import error:", error);
+            toast.error(error.message || "Failed to import patients. Please check the file format.");
+        } finally {
+            setLoadingStates(prev => ({ ...prev, uploadExcel: false }));
+            event.target.value = '';
+        }
     };
     const handleConfirmUpload = () => {
-        setUploadedData(prev => [...prev, ...previewData]); // update table with preview data
+        setUploadedData(prev => [...prev, ...previewData]);
         toast.success(`${previewData.length} records uploaded successfully!`);
         clearUploadState();
     };
@@ -232,7 +320,6 @@ const DataTable = ({
         setShowUploadConfirmModal(false);
     };
 
-
     const clearUploadedData = () => {
         setUploadedData([]);
         if (typeof window !== 'undefined') {
@@ -240,69 +327,8 @@ const DataTable = ({
         }
     };
 
-    const handleExport = (filters) => {
-        handleAction('export', () => {
-            let filteredExportData = [...combinedData];
 
-            if (filters.gender !== "all" && combinedData.some(item => item.gender)) {
-                filteredExportData = filteredExportData.filter(row =>
-                    row.gender === filters.gender
-                );
-            }
 
-            if (combinedData.some(item => item.age)) {
-                if (filters.ageRange.min || filters.ageRange.max) {
-                    filteredExportData = filteredExportData.filter(row => {
-                        const age = row.age || 0;
-                        return (
-                            (!filters.ageRange.min || age >= parseInt(filters.ageRange.min)) &&
-                            (!filters.ageRange.max || age <= parseInt(filters.ageRange.max))
-                        );
-                    });
-                }
-            }
-
-            if (combinedData.some(item => item.date)) {
-                if (filters.dateRange[0] && filters.dateRange[1]) {
-                    filteredExportData = filteredExportData.filter(row => {
-                        const rowDate = new Date(row.date);
-                        return rowDate >= filters.dateRange[0] && rowDate <= filters.dateRange[1];
-                    });
-                }
-            }
-
-            const headers = columns.map(col => col.header);
-            const keys = columns.map(col => col.key);
-
-            if (filters.format === "csv") {
-                const csvContent = [
-                    headers.join(","),
-                    ...filteredExportData.map(row =>
-                        keys.map(key => `"${row[key] || ''}"`).join(","))
-                ].join("\n");
-
-                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `${exportFileName}_${new Date().toISOString().slice(0, 10)}.csv`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                const worksheetData = [
-                    headers,
-                    ...filteredExportData.map(row => keys.map(key => row[key] || ''))
-                ];
-
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-                XLSX.writeFile(wb, `${exportFileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-            }
-
-            setShowExportModal(false);
-        });
-    };
 
     const renderCellContent = (row, column) => {
         if (column.actions) {
@@ -338,9 +364,9 @@ const DataTable = ({
         setLoadingStates(prev => ({ ...prev, downloadSample: true }));
 
         try {
-            // Define all fields from your form structure
+            // Define all fields from StepForm.jsx initialFormState
             const allFields = [
-                // Basic info
+                // Basic fields
                 'sNo',
                 'patientId',
                 'patientName',
@@ -350,9 +376,8 @@ const DataTable = ({
                 'lastVisit',
                 'followUpStatus',
                 'followUpDate',
-
-                // Section 1 - Patient Information
-                'section1_name',
+                // Section 1
+                'section1_patient_name',
                 'section1_address',
                 'section1_locality',
                 'section1_age',
@@ -374,8 +399,16 @@ const DataTable = ({
                 'section1_amputationDuration',
                 'section1_hasAngioplasty',
                 'section1_angioplastyDuration',
-
-                // Section 2 - Medical Assessment
+                'section1_smoking',
+                'section1_alcohol',
+                'section1_tobacco',
+                'section1_Renal',
+                'section1_retinal',
+                'section1_cardiovascular',
+                'section1_cerebrovascular',
+                'section1_imbIschemia',
+                'section1_hypertension',
+                // Section 2
                 'section2_firstAssessment',
                 'section2_attendedBefore',
                 'section2_facilityVisited',
@@ -411,11 +444,9 @@ const DataTable = ({
                 'section2_amputationType',
                 'section2_amputationLevel',
                 'section2_debridementWithAmputation',
-                'section2_survivalStatus',
                 'section2_deathDate',
                 'section2_deathReason',
-
-                // Section 3 - Additional Symptoms
+                // Section 3
                 'section3_burningSensation',
                 'section3_painWhileWalking',
                 'section3_skinChanges',
@@ -435,72 +466,213 @@ const DataTable = ({
                 'section3_deformityDuration',
                 'section3_hairGrowth',
                 'section3_pulsesPalpable',
-                'section3_skinTemperature'
+                'section3_skinTemperature',
+                'section3_ulcerPresence'
             ];
 
-            // Create headers row with friendly names
+            // Create headers with friendly names
             const headers = allFields.reduce((acc, field) => {
-                // Convert field names to friendly headers
                 let friendlyName = field
-                    .replace('section1_', 'Patient ')
-                    .replace('section2_', 'Medical ')
-                    .replace('section3_', 'Symptoms ')
+                    .replace('section1_', '')
+                    .replace('section2_', '')
+                    .replace('section3_', '')
                     .replace(/([A-Z])/g, ' $1')
                     .replace(/^./, str => str.toUpperCase())
                     .trim();
 
                 // Special cases
-                if (field === 'sNo') friendlyName = 'S.No';
-                if (field === 'patientId') friendlyName = 'Patient ID';
+                switch (field) {
+                    case 'sNo': friendlyName = 'Serial Number'; break;
+                    case 'patientId': friendlyName = 'Patient ID'; break;
+                    case 'patientName': friendlyName = 'Patient Name'; break;
+                    case 'appointmentDate': friendlyName = 'Appointment Date'; break;
+                    case 'submissionDate': friendlyName = 'Submission Date'; break;
+                    case 'status': friendlyName = 'Status'; break;
+                    case 'lastVisit': friendlyName = 'Last Visit'; break;
+                    case 'followUpStatus': friendlyName = 'Follow-Up Status'; break;
+                    case 'followUpDate': friendlyName = 'Follow-Up Date'; break;
+                    case 'section1_patient_name': friendlyName = 'Patient Name'; break;
+                    case 'section1_facilityName': friendlyName = 'Facility Name'; break;
+                    case 'section1_facilityLocation': friendlyName = 'Facility Location'; break;
+                    case 'section1_facilityType': friendlyName = 'Facility Type'; break;
+                    case 'section1_monthlyIncome': friendlyName = 'Monthly Income'; break;
+                    case 'section1_familyMembers': friendlyName = 'Family Members'; break;
+                    case 'section1_diabetesType': friendlyName = 'Diabetes Type'; break;
+                    case 'section1_diabetesDuration': friendlyName = 'Diabetes Duration'; break;
+                    case 'section1_hasUlcer': friendlyName = 'Has Ulcer'; break;
+                    case 'section1_ulcerDuration': friendlyName = 'Ulcer Duration'; break;
+                    case 'section1_hasAmputation': friendlyName = 'Has Amputation'; break;
+                    case 'section1_amputationDuration': friendlyName = 'Amputation Duration'; break;
+                    case 'section1_hasAngioplasty': friendlyName = 'Has Angioplasty'; break;
+                    case 'section1_angioplastyDuration': friendlyName = 'Angioplasty Duration'; break;
+                    case 'section1_imbIschemia': friendlyName = 'Limb Ischemia'; break;
+                    case 'section2_firstAssessment': friendlyName = 'First Assessment'; break;
+                    case 'section2_attendedBefore': friendlyName = 'Attended Before'; break;
+                    case 'section2_facilityVisited': friendlyName = 'Facility Visited'; break;
+                    case 'section2_intervalToAssessment': friendlyName = 'Interval to Assessment'; break;
+                    case 'section2_referredBy': friendlyName = 'Referred By'; break;
+                    case 'section2_treatedDays': friendlyName = 'Treated Days'; break;
+                    case 'section2_referredInDays': friendlyName = 'Referred In Days'; break;
+                    case 'section2_visitedInDays': friendlyName = 'Visited In Days'; break;
+                    case 'section2_gangreneType': friendlyName = 'Gangrene Type'; break;
+                    case 'section2_boneExposure': friendlyName = 'Bone Exposure'; break;
+                    case 'section2_arterialIssues': friendlyName = 'Arterial Issues'; break;
+                    case 'section2_woundSize': friendlyName = 'Wound Size'; break;
+                    case 'section2_woundLocation': friendlyName = 'Wound Location'; break;
+                    case 'section2_woundDuration': friendlyName = 'Wound Duration'; break;
+                    case 'section2_woundClassification': friendlyName = 'Wound Classification'; break;
+                    case 'section2_socGiven': friendlyName = 'SOC Given'; break;
+                    case 'section2_socDetails': friendlyName = 'SOC Details'; break;
+                    case 'section2_dressingMaterial': friendlyName = 'Dressing Material'; break;
+                    case 'section2_offloadingDevice': friendlyName = 'Offloading Device'; break;
+                    case 'section2_amputationType': friendlyName = 'Amputation Type'; break;
+                    case 'section2_amputationLevel': friendlyName = 'Amputation Level'; break;
+                    case 'section2_debridementWithAmputation': friendlyName = 'Debridement with Amputation'; break;
+                    case 'section2_deathDate': friendlyName = 'Death Date'; break;
+                    case 'section2_deathReason': friendlyName = 'Death Reason'; break;
+                    case 'section3_burningSensation': friendlyName = 'Burning Sensation'; break;
+                    case 'section3_painWhileWalking': friendlyName = 'Pain While Walking'; break;
+                    case 'section3_skinChanges': friendlyName = 'Skin Changes'; break;
+                    case 'section3_sensationLoss': friendlyName = 'Sensation Loss'; break;
+                    case 'section3_nailProblems': friendlyName = 'Nail Problems'; break;
+                    case 'section3_fungalInfection': friendlyName = 'Fungal Infection'; break;
+                    case 'section3_skinLesions': friendlyName = 'Skin Lesions'; break;
+                    case 'section3_openWound': friendlyName = 'Open Wound'; break;
+                    case 'section3_monofilamentLeftA': friendlyName = 'Monofilament Left A'; break;
+                    case 'section3_monofilamentLeftB': friendlyName = 'Monofilament Left B'; break;
+                    case 'section3_monofilamentLeftC': friendlyName = 'Monofilament Left C'; break;
+                    case 'section3_monofilamentRightA': friendlyName = 'Monofilament Right A'; break;
+                    case 'section3_monofilamentRightB': friendlyName = 'Monofilament Right B'; break;
+                    case 'section3_monofilamentRightC': friendlyName = 'Monofilament Right C'; break;
+                    case 'section3_footDeformities': friendlyName = 'Foot Deformities'; break;
+                    case 'section3_deformityDuration': friendlyName = 'Deformity Duration'; break;
+                    case 'section3_hairGrowth': friendlyName = 'Hair Growth'; break;
+                    case 'section3_pulsesPalpable': friendlyName = 'Pulses Palpable'; break;
+                    case 'section3_skinTemperature': friendlyName = 'Skin Temperature'; break;
+                    case 'section3_ulcerPresence': friendlyName = 'Ulcer Presence'; break;
+                }
 
                 acc[field] = friendlyName;
                 return acc;
             }, {});
 
-            // Create example data row
+            // Create example data row with realistic values
             const exampleRow = allFields.reduce((acc, field) => {
                 let exampleValue = '';
 
-                // Set appropriate example values based on field type
-                if (field.includes('Date')) {
-                    exampleValue = '2023-01-15';
-                }
-                else if (field.includes('age') || field.includes('Duration') || field.includes('Days')) {
-                    exampleValue = '5';
-                }
-                else if (field.includes('Income') || field.includes('Members')) {
-                    exampleValue = '2';
-                }
-                else if (field === 'status') {
-                    exampleValue = 'Completed';
-                }
-                else if (field === 'followUpStatus') {
-                    exampleValue = 'Pending';
-                }
-                else if (field.includes('has') || field.includes('Given')) {
-                    exampleValue = 'Yes/No';
-                }
-                else if (field.includes('Type') || field.includes('Classification')) {
-                    exampleValue = 'Type A';
-                }
-                else if (field.includes('Location') || field.includes('Level')) {
-                    exampleValue = 'Left foot';
-                }
-                else if (field.includes('Material') || field.includes('Device')) {
-                    exampleValue = 'Standard dressing';
-                }
-                else {
-                    exampleValue = `Example ${field.replace(/section[123]_/, '')}`;
+                switch (field) {
+                    // Basic fields
+                    case 'sNo': exampleValue = '1'; break;
+                    case 'patientId': exampleValue = 'PAT12345'; break;
+                    case 'patientName': exampleValue = 'John Doe'; break;
+                    case 'appointmentDate': exampleValue = '2025-05-15'; break;
+                    case 'submissionDate': exampleValue = '2025-05-15'; break;
+                    case 'status': exampleValue = 'Completed'; break;
+                    case 'lastVisit': exampleValue = '2025-05-10'; break;
+                    case 'followUpStatus': exampleValue = 'Pending'; break;
+                    case 'followUpDate': exampleValue = '2025-11-15'; break;
+                    // Section 1
+                    case 'section1_patient_name': exampleValue = 'John Doe'; break;
+                    case 'section1_address': exampleValue = '123 Main St'; break;
+                    case 'section1_locality': exampleValue = 'Downtown'; break;
+                    case 'section1_age': exampleValue = '55'; break;
+                    case 'section1_gender': exampleValue = 'Male'; break;
+                    case 'section1_facilityName': exampleValue = 'City Hospital'; break;
+                    case 'section1_facilityLocation': exampleValue = 'Mumbai'; break;
+                    case 'section1_facilityType': exampleValue = 'Public'; break;
+                    case 'section1_education': exampleValue = 'Graduate'; break;
+                    case 'section1_occupation': exampleValue = 'Teacher'; break;
+                    case 'section1_maritalStatus': exampleValue = 'Married'; break;
+                    case 'section1_monthlyIncome': exampleValue = '50000'; break;
+                    case 'section1_familyMembers': exampleValue = '4'; break;
+                    case 'section1_dependents': exampleValue = '2'; break;
+                    case 'section1_diabetesType': exampleValue = 'Type 2'; break;
+                    case 'section1_diabetesDuration': exampleValue = '10'; break;
+                    case 'section1_hasUlcer': exampleValue = 'Yes'; break;
+                    case 'section1_ulcerDuration': exampleValue = '2'; break;
+                    case 'section1_hasAmputation': exampleValue = 'No'; break;
+                    case 'section1_amputationDuration': exampleValue = ''; break;
+                    case 'section1_hasAngioplasty': exampleValue = 'No'; break;
+                    case 'section1_angioplastyDuration': exampleValue = ''; break;
+                    case 'section1_smoking': exampleValue = 'No'; break;
+                    case 'section1_alcohol': exampleValue = 'No'; break;
+                    case 'section1_tobacco': exampleValue = 'No'; break;
+                    case 'section1_Renal': exampleValue = 'No'; break;
+                    case 'section1_retinal': exampleValue = 'No'; break;
+                    case 'section1_cardiovascular': exampleValue = 'Yes'; break;
+                    case 'section1_cerebrovascular': exampleValue = 'No'; break;
+                    case 'section1_imbIschemia': exampleValue = 'No'; break;
+                    case 'section1_hypertension': exampleValue = 'Yes'; break;
+                    // Section 2
+                    case 'section2_firstAssessment': exampleValue = '2025-05-01'; break;
+                    case 'section2_attendedBefore': exampleValue = 'Yes'; break;
+                    case 'section2_facilityVisited': exampleValue = 'General Hospital'; break;
+                    case 'section2_intervalToAssessment': exampleValue = '6'; break;
+                    case 'section2_referredBy': exampleValue = 'Dr. Smith'; break;
+                    case 'section2_treatedDays': exampleValue = '30'; break;
+                    case 'section2_referredInDays': exampleValue = '5'; break;
+                    case 'section2_visitedInDays': exampleValue = '7'; break;
+                    case 'section2_necrosis': exampleValue = 'No'; break;
+                    case 'section2_gangrene': exampleValue = 'No'; break;
+                    case 'section2_gangreneType': exampleValue = ''; break;
+                    case 'section2_boneExposure': exampleValue = 'No'; break;
+                    case 'section2_osteomyelitis': exampleValue = 'No'; break;
+                    case 'section2_sepsis': exampleValue = 'No'; break;
+                    case 'section2_arterialIssues': exampleValue = 'No'; break;
+                    case 'section2_infection': exampleValue = 'No'; break;
+                    case 'section2_swelling': exampleValue = 'Yes'; break;
+                    case 'section2_erythema': exampleValue = 'No'; break;
+                    case 'section2_tenderness': exampleValue = 'Yes'; break;
+                    case 'section2_warmth': exampleValue = 'No'; break;
+                    case 'section2_discharge': exampleValue = 'No'; break;
+                    case 'section2_cultureReport': exampleValue = 'Negative'; break;
+                    case 'section2_woundSize': exampleValue = '2x3 cm'; break;
+                    case 'section2_woundLocation': exampleValue = 'Left Foot'; break;
+                    case 'section2_woundDuration': exampleValue = '3'; break;
+                    case 'section2_woundClassification': exampleValue = 'Grade 1'; break;
+                    case 'section2_socGiven': exampleValue = 'Yes'; break;
+                    case 'section2_socDetails': exampleValue = 'Daily dressing'; break;
+                    case 'section2_dressingMaterial': exampleValue = 'Hydrocolloid'; break;
+                    case 'section2_offloadingDevice': exampleValue = 'Orthotic Shoe'; break;
+                    case 'section2_hospitalization': exampleValue = 'No'; break;
+                    case 'section2_amputation': exampleValue = 'No'; break;
+                    case 'section2_amputationType': exampleValue = ''; break;
+                    case 'section2_amputationLevel': exampleValue = ''; break;
+                    case 'section2_debridementWithAmputation': exampleValue = 'No'; break;
+                    case 'section2_deathDate': exampleValue = ''; break;
+                    case 'section2_deathReason': exampleValue = ''; break;
+                    // Section 3
+                    case 'section3_burningSensation': exampleValue = 'No'; break;
+                    case 'section3_painWhileWalking': exampleValue = 'Yes'; break;
+                    case 'section3_skinChanges': exampleValue = 'No'; break;
+                    case 'section3_sensationLoss': exampleValue = 'No'; break;
+                    case 'section3_nailProblems': exampleValue = 'No'; break;
+                    case 'section3_fungalInfection': exampleValue = 'No'; break;
+                    case 'section3_skinLesions': exampleValue = 'No'; break;
+                    case 'section3_openWound': exampleValue = 'Yes'; break;
+                    case 'section3_cellulitis': exampleValue = 'No'; break;
+                    case 'section3_monofilamentLeftA': exampleValue = 'Yes'; break;
+                    case 'section3_monofilamentLeftB': exampleValue = 'Yes'; break;
+                    case 'section3_monofilamentLeftC': exampleValue = 'No'; break;
+                    case 'section3_monofilamentRightA': exampleValue = 'Yes'; break;
+                    case 'section3_monofilamentRightB': exampleValue = 'Yes'; break;
+                    case 'section3_monofilamentRightC': exampleValue = 'No'; break;
+                    case 'section3_footDeformities': exampleValue = 'No'; break;
+                    case 'section3_deformityDuration': exampleValue = ''; break;
+                    case 'section3_hairGrowth': exampleValue = 'Normal'; break;
+                    case 'section3_pulsesPalpable': exampleValue = 'Yes'; break;
+                    case 'section3_skinTemperature': exampleValue = 'Normal'; break;
+                    case 'section3_ulcerPresence': exampleValue = 'Yes'; break;
                 }
 
                 acc[field] = exampleValue;
                 return acc;
             }, {});
 
-            // Create worksheet with both rows
+            // Create worksheet with headers and example row
             const ws = XLSX.utils.json_to_sheet([headers, exampleRow], { skipHeader: true });
 
-            // Style headers (make them bold)
+            // Style headers (bold)
             if (ws['!ref']) {
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -514,12 +686,12 @@ const DataTable = ({
             // Set column widths based on content
             ws['!cols'] = allFields.map(field => ({
                 wch: Math.max(
-                    15, // minimum width
+                    10, // Minimum width
                     Math.min(
-                        30, // maximum width
-                        field.length, // field name length
-                        headers[field]?.length || 0, // header length
-                        exampleRow[field]?.length || 0 // example value length
+                        50, // Maximum width
+                        field.length,
+                        headers[field]?.length || 0,
+                        String(exampleRow[field] || '').length
                     )
                 )
             }));
@@ -529,7 +701,7 @@ const DataTable = ({
             XLSX.utils.book_append_sheet(wb, ws, "Sample Data");
             XLSX.writeFile(wb, `${exportFileName}_complete_sample.xlsx`);
 
-            toast.success("Complete sample file downloaded successfully!");
+            toast.success("Sample file with all fields downloaded successfully!");
         } catch (error) {
             console.error("Error generating sample file:", error);
             toast.error("Failed to download sample file");
@@ -537,55 +709,101 @@ const DataTable = ({
             setLoadingStates(prev => ({ ...prev, downloadSample: false }));
         }
     };
+
     const handleDirectExport = async () => {
+        if (permissions.download_doctor_data === "Disabled") {
+            toast.error("You don't have access to download doctor data. Please contact admin.");
+            return;
+        }
         setLoadingStates(prev => ({ ...prev, directExport: true }));
 
         try {
-            const headers = columns.map(col => col.header || col.key);
-            const keys = columns.map(col => col.key);
+            console.log("Starting doctor export...");
+            const response = await apiGet('/doctors');
+            console.log("API response:", response);
 
-            const worksheetData = [
-                headers,
-                ...filteredData.map(row =>
-                    keys.map(key => {
-                        if (key === 'status') return row[key];
-                        if (key === 'image') return row[key] ? 'Image Available' : 'No Image';
+            const rawDoctors = response?.data || response;
 
-                        const columnDef = columns.find(col => col.key === key);
-                        if (columnDef?.render) {
-                            if (columnDef.actions) return '';
-                            const renderedValue = columnDef.render(row[key], row);
-                            if (React.isValidElement(renderedValue)) {
-                                if (key === 'status') return row[key];
-                                return '';
-                            }
-                            return renderedValue;
-                        }
-                        return row[key] || '';
-                    })
-                )
+            if (!Array.isArray(rawDoctors)) {
+                throw new Error("Invalid data format received from API");
+            }
+
+            // Sort doctors by update time, latest first
+            const sortedDoctors = [...rawDoctors].sort((a, b) =>
+                new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+            );
+
+            const doctorsWithSNo = sortedDoctors.map((doc, index) => ({ ...doc, sNo: index + 1 }));
+
+            // Define the headers to match the fields
+            const headers = [
+                "S.No", "Doctor Name", "Education", "Specialty", "Experience Years",
+                "Facility Name", "Facility Address", "Facility Type",
+                "Patients/Day", "Patients/Week",
+                "Diabetologist", "General Practitioner", "General Surgeon",
+                "Orthopaedic Surgeon", "Podiatric Surgeon", "Vascular Surgeon",
+                "Infectious Specialist", "Podiatrist", "Diabetes Nurse", "Pedorthist",
+                "Referring Patients", "Referring Specialist", "Referring Surgical",
+                "Surgical Procedure", "Receiving Referrals",
+                "Email", "Phone", "Status", "Created At", "Updated At"
             ];
 
+            // Convert to worksheet data
+            const worksheetData = [
+                headers,
+                ...doctorsWithSNo.map(doc => [
+                    doc.sNo,
+                    doc.doctors_name,
+                    doc.education,
+                    doc.specialty,
+                    doc.experience_years,
+                    doc.facility_name,
+                    doc.facility_address,
+                    doc.facility_type,
+                    doc.patients_per_day,
+                    doc.patients_per_week,
+
+                    doc.diabetologist ? "Yes" : "No",
+                    doc.generalPractitioner ? "Yes" : "No",
+                    doc.generalSurgeon ? "Yes" : "No",
+                    doc.orthopaedicSurgeon ? "Yes" : "No",
+                    doc.podiatricSurgeon ? "Yes" : "No",
+                    doc.vascularSurgeon ? "Yes" : "No",
+                    doc.infectiousSpecialist ? "Yes" : "No",
+                    doc.podiatrist ? "Yes" : "No",
+                    doc.diabetesNurse ? "Yes" : "No",
+                    doc.pedorthist ? "Yes" : "No",
+
+                    doc.referring_patients || "",
+                    doc.referring_specialist || "",
+                    doc.referring_surgical || "",
+                    doc.surgical_procedure || "",
+                    doc.receiving_referrals || "",
+
+                    doc.email,
+                    doc.phone,
+                    doc.status,
+                    doc.created_at,
+                    doc.updated_at
+                ])
+            ];
+
+            // Create Excel sheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(worksheetData);
 
+            // Auto column widths
             const colWidths = headers.map((header, index) => {
                 const maxContentLength = Math.max(
                     header.length,
-                    ...filteredData.map(row => {
-                        const value = worksheetData[filteredData.indexOf(row) + 1][index];
-                        return String(value).length;
-                    })
+                    ...worksheetData.slice(1).map(row => String(row[index]).length)
                 );
                 return { wch: Math.min(Math.max(maxContentLength, 10), 50) };
             });
             ws['!cols'] = colWidths;
 
             XLSX.utils.book_append_sheet(wb, ws, "Doctors");
-            XLSX.writeFile(
-                wb,
-                `${exportFileName}_${new Date().toISOString().slice(0, 10)}.xlsx`
-            );
+            XLSX.writeFile(wb, `Doctors_${new Date().toISOString().slice(0, 10)}.xlsx`);
 
             toast.success("Doctors data exported successfully!");
         } catch (error) {
@@ -595,14 +813,88 @@ const DataTable = ({
             setLoadingStates(prev => ({ ...prev, directExport: false }));
         }
     };
+    const handleDownloadSubadmin = async () => {
+        setLoadingStates(prev => ({ ...prev, subadminExport: true }));
+
+        try {
+            console.log("Starting subadmin export...");
+            const response = await apiGet('/subadmins');  // Your subadmin API endpoint
+            console.log("API response:", response);
+
+            const rawSubadmins = response?.data || response;
+
+            if (!Array.isArray(rawSubadmins)) {
+                throw new Error("Invalid data format received from API");
+            }
+
+            // Sort subadmins by ID (or use another relevant field)
+            const sortedSubadmins = [...rawSubadmins].sort((a, b) => a.id - b.id);
+
+            const subadminsWithSNo = sortedSubadmins.map((subadmin, index) => ({
+                ...subadmin,
+                sNo: index + 1,
+            }));
+
+            // Define headers to match your columns
+            const headers = [
+                "S.NO",
+                "ID",
+                "Name",
+                "Email",
+                "Status",
+                "Download Patient Data",
+                "Download Doctor Data",
+                "Delete Doctors"
+            ];
+
+            // Map your data into rows matching headers order
+            const worksheetData = [
+                headers,
+                ...subadminsWithSNo.map(subadmin => [
+                    subadmin.sNo,
+                    subadmin.id,
+                    subadmin.name,
+                    subadmin.username,
+                    subadmin.status,
+                    subadmin.download_patient_data !== "Disabled" ? "Enabled" : "Disabled",
+                    subadmin.download_doctor_data !== "Disabled" ? "Enabled" : "Disabled",
+                    subadmin.delete_doctors !== "Disabled" ? "Enabled" : "Disabled"
+                ])
+            ];
+
+            // Create Excel workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+            // Auto column widths based on content length (min 10, max 50)
+            const colWidths = headers.map((header, idx) => {
+                const maxLength = Math.max(
+                    header.length,
+                    ...worksheetData.slice(1).map(row => String(row[idx]).length)
+                );
+                return { wch: Math.min(Math.max(maxLength, 10), 50) };
+            });
+            ws['!cols'] = colWidths;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Subadmins");
+            XLSX.writeFile(wb, `Subadmins_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+            toast.success("Subadmin data exported successfully!");
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error("Failed to export subadmin data");
+        } finally {
+            setLoadingStates(prev => ({ ...prev, subadminExport: false }));
+        }
+    };
+
 
     return (
         <div className="data-table-container">
-            {/* Table Controls */}
             <div className="table-controls">
                 <div className="controls-group">
                     {showSearch && (
-                        <div className="search-container">  
+                        <div className="search-container">
                             <div className="search-input-container">
                                 <FaSearch className="search-icon" />
                                 <input
@@ -631,15 +923,10 @@ const DataTable = ({
                 </div>
 
                 <div className="action-buttons-container">
-                    {/* {!isTableEmpty && (
-                        <button className="action-btn danger" onClick={clearAllData}>
-                            Clear All Data
-                        </button>
-                    )} */}
                     {showAddNew && (
                         <a
                             className="Add-new action-btn"
-                            onClick={onAddNew} // Directly use the onAddNew handler
+                            onClick={onAddNew}
                             disabled={loadingStates.addNew}
                             id="add-data-button"
                         >
@@ -649,7 +936,6 @@ const DataTable = ({
                                 <>
                                     <FilePlus className="btn-icon" />
                                     <span className="btn-text">Add Data</span>
-                                    {/* Show the bouncing hand only if table is empty */}
                                     {isTableEmpty && (
                                         <MousePointerClick className="mouse-click" size={20} />
                                     )}
@@ -657,7 +943,6 @@ const DataTable = ({
                             )}
                         </a>
                     )}
-
 
                     {showDownloadSample && (
                         <a
@@ -704,10 +989,23 @@ const DataTable = ({
                     {showExport && (
                         <a
                             className="download-excel action-btn"
-                            onClick={() => setShowExportModal(true)}
+                            onClick={() => {
+                                if (permissions.download_patient_data === "Disabled") {
+                                    toast.error("You don't have access to download patient data. Please contact admin.");
+                                    return;
+                                }
+                                setShowExportModal(true);
+                            }}
+                            disabled={loadingStates.export}
                         >
-                            <Download className="btn-icon" />
-                            <span className="btn-text">Excel Download</span>
+                            {loadingStates.export ? (
+                                <div className="spinner" />
+                            ) : (
+                                <>
+                                    <Download className="btn-icon" />
+                                    <span className="btn-text">Excel Download</span>
+                                </>
+                            )}
                         </a>
                     )}
 
@@ -727,10 +1025,27 @@ const DataTable = ({
                             )}
                         </a>
                     )}
+                    {showDownloadSubadmin && (
+                        <a
+                            className="excel-upload action-btn"
+                            onClick={handleDownloadSubadmin}
+                            disabled={loadingStates.subadminExport} // use a separate loading flag here
+                        >
+                            {loadingStates.subadminExport ? (
+                                <div className="spinner" />
+                            ) : (
+                                <>
+                                    <FaFileExcel className="btn-icon" />
+                                    <span className="btn-text">Download Subadmin List</span>
+                                </>
+                            )}
+                        </a>
+                    )}
+
+
                 </div>
             </div>
 
-            {/* Empty State */}
             {isTableEmpty ? (
                 <div className="empty-state-container">
                     <div className="empty-state-content">
@@ -744,20 +1059,11 @@ const DataTable = ({
                             onClick={() => handleAction('addNew', onAddNew)}
                             disabled={loadingStates.addNew}
                         >
-                            {/* {loadingStates.addNew ? (
-                                <div className="spinner" />
-                            ) : (
-                                <>
-                                    <FilePlus className="btn-icon" />
-                                    <span>Add Data</span>
-                                </>
-                            )} */}
                         </button>
                     </div>
                 </div>
             ) : (
                 <>
-                    {/* Table */}
                     <div className="table-wrapper">
                         <table className="admin-table">
                             <thead>
@@ -809,7 +1115,6 @@ const DataTable = ({
                         </table>
                     </div>
 
-                    {/* Pagination */}
                     {filteredData.length > rowsPerPage && (
                         <div className="pagination-container">
                             <div className="pagination-info">
@@ -884,14 +1189,14 @@ const DataTable = ({
                 </>
             )}
 
-            {/* Export Modal */}
             <ExportModal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
-                onExport={handleExport}
+                onExport={onExport}
                 isLoading={loadingStates.export}
                 exportFileName={exportFileName}
                 columns={columns}
+
                 data={combinedData}
             />
             <FileUploadConfirmationModal
@@ -902,7 +1207,6 @@ const DataTable = ({
                 onConfirm={handleConfirmUpload}
                 isLoading={loadingStates.uploadExcel}
             />
-
         </div>
     );
 };

@@ -219,3 +219,9 @@ iframe[src*="accounts.google.com"] {
 .user-dashboard-sub-heading{
     padding-bottom: 5px;
 }
+@media (max-width: 768px) {
+    .user-dashboard-heading {
+        display: none;
+        /* or flex, or inline-block, etc. */
+    }
+}

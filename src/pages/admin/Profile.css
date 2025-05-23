@@ -296,3 +296,47 @@
         justify-content: center;
     }
 }
+
+.doctor-column-layout {
+    display: flex;
+    flex-direction: row;
+    /* gap: 2rem; */
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem;
+}
+    .doctor-image-column {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+        .doctor-image-column img {
+            max-width: 100%;
+            height: 514px;
+            border-radius: 8px;
+        }
+    
+
+                .user-pwd {
+        flex: 1;
+        max-width: 600px;
+    }
+
+
+
+@media (max-width: 768px) {
+    .doctor-column-layout {
+        flex-direction: column;
+    }
+        .doctor-image-column {
+            margin-bottom: 2rem;
+        }
+                .doctor-image-column img {
+display: none;
+                }
+    }
+
+    .hiden-password-field{
+        display: none;
+    }
