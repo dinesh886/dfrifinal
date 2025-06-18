@@ -339,3 +339,8 @@ background-color: #e6f7ff;
     gap: 8px;
     align-items: center;
 }
+.toast-success {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-radius: 4px;
+}

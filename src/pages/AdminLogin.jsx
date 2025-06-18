@@ -138,7 +138,7 @@ const AdminLogin = () => {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@admin.com"
+                                    placeholder="Enter your email "
                                     required
                                     autoFocus
                                 />
@@ -183,10 +183,10 @@ const AdminLogin = () => {
                         </button>
                     </form>
 
-                    <div className="login-footer">
+                    {/* <div className="login-footer">
                         <p>Need help? <a href="/support">Contact our support team</a></p>
                         <p className="version">v2.4.1</p>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

@@ -55,7 +55,7 @@ const StepForm = () => {
             necrosisPhotoPreview: '',
             gangrene: '',
             gangreneType: '',
-            boneExposure: '',
+            probetobone: '',
             osteomyelitis: '',
             sepsis: '',
             arterialIssues: '',
@@ -64,7 +64,7 @@ const StepForm = () => {
             erythema: '',
             tenderness: '',
             warmth: '',
-            discharge: '',
+         
             cultureReport: '',
             woundSize: '',
             woundLocation: '',
@@ -82,8 +82,8 @@ const StepForm = () => {
             amputationLevel: '',
             debridementWithAmputation: '',
             survivalStatus: '',
-            deathDate: '',
-            deathReason: ''
+       
+           
         },
         section3: {
             burningSensation: '',
@@ -113,8 +113,7 @@ const StepForm = () => {
             healingTime: '',
             recurrentUlcer: '',
             survivalStatus: 'alive',
-            deathDate: '',
-            deathReason: ''
+         
         },
     });
 
@@ -142,7 +141,7 @@ const StepForm = () => {
             'gangrene',
             // Only required if gangrene is 'Yes'
             ...(formData.section2.gangrene === 'Yes' ? ['gangreneType'] : []),
-            'boneExposure', 'osteomyelitis', 'sepsis', 'arterialIssues',
+            'probetobone', 'osteomyelitis', 'sepsis', 'arterialIssues',
             'infection', 'swelling', 'erythema', 'tenderness', 'warmth',
             'woundSize', 'woundLocation', 'woundDuration', 'woundClassification',
             'socGiven',
@@ -154,7 +153,7 @@ const StepForm = () => {
             ...(formData.section2.amputation === 'Major' ? ['amputationLevel'] : []),
             'debridementWithAmputation', 'survivalStatus',
             // Only required if deceased
-            ...(formData.section2.survivalStatus === 'Deceased' ? ['deathDate', 'deathReason'] : [])
+          
         ],
         3: [
             'burningSensation', 'painWhileWalking', 'skinChanges', 'sensationLoss',
@@ -181,10 +180,10 @@ const StepForm = () => {
             'recurrentUlcer',
             'survivalStatus',
             // Only required if survivalStatus is 'death'
-            ...(formData.section4.survivalStatus === 'death' ? [
-                'deathDate',
-                'deathReason'
-            ] : [])
+            // ...(formData.section4.survivalStatus === 'death' ? [
+            //     'deathDate',
+            //     'deathReason'
+            // ] : [])
         ],
     };
 

@@ -75,7 +75,7 @@ const StepForm = () => {
       necrosisPhotoPreview: "",
       gangrene: "",
       gangreneType: "",
-      boneExposure: "",
+      probetobone: "",
       osteomyelitis: "",
       sepsis: "",
       arterialIssues: "",
@@ -84,7 +84,7 @@ const StepForm = () => {
       erythema: "",
       tenderness: "",
       warmth: "",
-      discharge: "",
+   
       cultureReport: "",
       woundSize: "",
       woundLocation: "",
@@ -99,8 +99,7 @@ const StepForm = () => {
       amputationType: "",
       amputationLevel: "",
       debridementWithAmputation: "",
-      deathDate: "",
-      deathReason: "",
+    
       woundReferenceFile: null,
     },
     section3: {
@@ -288,7 +287,7 @@ const StepForm = () => {
       ...(formData.section2.necrosis === "Yes" ? ["necrosisPhoto"] : []),
       "gangrene",
       ...(formData.section2.gangrene === "Yes" ? ["gangreneType"] : []),
-      "boneExposure",
+      "probetobone",
       "osteomyelitis",
       "sepsis",
       "arterialIssues",

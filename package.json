@@ -23,6 +23,7 @@
     "@tanstack/react-table": "^8.21.3",
     "antd": "^5.24.8",
     "bootstrap": "^5.3.5",
+    "country-state-city": "^3.2.1",
     "dfri": "file:",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",

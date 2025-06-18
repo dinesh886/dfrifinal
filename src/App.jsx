@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Changed to min.css
 const App = () => {
   return (
     <Provider store={store}>
-      <BrowserRouter basename='dfrifinal3'>
+      <BrowserRouter basename='dfrifinal'>
         <AppInitializer>
           <AppRoutes />
 

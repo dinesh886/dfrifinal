@@ -173,7 +173,7 @@ const Header = () => {
                                     <div className="dropdown-divider"></div>
                                 </>
                             )}
-                            <div className="dropdown-divider"></div>
+                            {/* <div className="dropdown-divider"></div> */}
                             <Link to="/admin" className="dropdown-item logout">
                                 <FaSignOutAlt className="dropdown-icon" />
                                 <span>Logout</span>

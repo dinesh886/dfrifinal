@@ -31,13 +31,18 @@ const StepForm = () => {
   const initialFormState = {
     section1: {
       patient_name: "",
-      consentForm: null,
+      consentForm: "",
       consentFormPreview: "",
-      consentDownloaded: false,
-      consentUploaded: false,
-      consentVerified: false,
+      consentDownloaded: "",
+      consentUploaded: "no",
+      consentVerified: "no",
       // address: "",
       locality: "",
+      villageOrCity: "",
+      state: "",
+      pincode: "",
+      treatmentType:"",
+      facilityEmail:"",
       age: "",
       gender: "",
       facilityName: "",
@@ -46,7 +51,8 @@ const StepForm = () => {
       education: "",
       occupation: "",
       maritalStatus: "",
-      monthlyIncome: "",
+      // monthlyIncome: "",
+      sesRating: null, // Changed from "" to null
       familyMembers: "",
       dependents: "",
       diabetesType: "",
@@ -64,7 +70,7 @@ const StepForm = () => {
       retinal: "",
       cardiovascular: "",
       cerebrovascular: "",
-      imbIschemia: "",
+      // imbIschemia: "",
       hypertension: "",
 
       heartFailure: "", // Added
@@ -94,22 +100,32 @@ const StepForm = () => {
       serumCreatinine: "", // Added
     },
     section2: {
-      onsetFootUlcer :"",
-      firstTreatmentDate:"",
+      // onsetFootUlcer :"",
+      // firstTreatmentDate:"",
       firstAssessment: "",
-      attendedBefore: "",
-      facilityVisited: "",
-      intervalToAssessment: "",
-      referredBy: "",
-      treatedDays: "",
-      referredInDays: "",
-      visitedInDays: "",
+      // attendedBefore: "",
+      // facilityVisited: "",
+      // intervalToAssessment: "",
+      // referredBy: "",
+      // treatedDays: "",
+      // referredInDays: "",
+      // visitedInDays: "",
       necrosis: "",
-      necrosisPhoto: "",
-      necrosisPhotoPreview: "",
+     
+      leg:"",
+      foot:"",
+      rightFoot_forefoot:"",
+      rightFoot_hindfoot:"",
+      rightFoot_midfoot:"",
+      leftFoot_forefoot:"",
+      leftFoot_hindfoot:"",
+      leftFoot_midfoot:"",
+      // necrosisPhoto: "",
+      purulentDischarge:"",
+      // necrosisPhotoPreview: "",
       gangrene: "",
       gangreneType: "",
-      boneExposure: "",
+      probetobone: "",
       osteomyelitis: "",
       sepsis: "",
       arterialIssues: "",
@@ -118,31 +134,35 @@ const StepForm = () => {
       erythema: "",
       tenderness: "",
       warmth: "",
-      discharge: "",
+   
       cultureReport: "",
       cultureReportPreview: "",
       woundSize: "",
-      woundLocation: "",
+      // woundLocation: "",
       woundDuration: "",
-      woundClassification: "",
+      // woundClassification: "",
       socGiven: "",
       socDetails: "",
       dressingMaterial: "",
       offloadingDevice: "",
-      hospitalization: "",
+      // hospitalization: "",
       amputation: "",
       amputationType: "",
       amputationLevel: "",
-      debridementWithAmputation: "",
-      deathDate: "",
-      deathReason: "",
+      // debridementWithAmputation: "",
+      antibioticsGiven:"",
+      
       woundReferenceFile: "",
       woundReferenceFilePreview: "",
       woundReferenceConsent: "",
     
       cultureReportAvailable: "",
       arterialReport: "",
+      cultureReportPreview:"",
       arterialReportPreview: "",
+    
+
+      
     },
     section3: {
       burningSensation: "",
@@ -153,7 +173,7 @@ const StepForm = () => {
       fungalInfection: "",
       skinLesions: "",
       openWound: "",
-      cellulitis: "",
+      // cellulitis: "",
 
       testType : "",
 
@@ -177,10 +197,10 @@ const StepForm = () => {
       hairGrowth: "",
       pulsesPalpable: "",
       skinTemperature: "",
-      ulcerPresence: "",
-      cultureReportAvailable: "",
-      footImage: "",
-      footImagePreview: "", // ✅ ADD THIS LINE
+      // ulcerPresence: "",
+   
+      // footImage: "",
+      // footImagePreview: "",
    
     },
   }
@@ -229,22 +249,21 @@ const StepForm = () => {
   const isRadioField = (field) => {
     const radioFields = [
       // Section 1
-      "consentDownloaded", "consentUploaded", "consentVerified",
-      "hasUlcer", "hasAmputation", "hasAngioplasty",
-      "renal", "retinal", "cardiovascular", "cerebrovascular",
-      "imbIschemia", "hypertension", "limbIschemia",
+    
+      "hasUlcer", "hasAngioplasty",
+      "renal", "retinal", "cardiovascular", "cerebrovascular", "hypertension", "limbIschemia",
 
       // Section 2
-      "necrosis", "gangrene", "boneExposure", "osteomyelitis", "sepsis",
-      "arterialIssues", "infection", "swelling", "erythema",
-      "tenderness", "warmth", "discharge",
+      "necrosis", "gangrene", "sepsis",
+      "arterialIssues", "swelling", "erythema",
+      "tenderness", "warmth", 
 
       // Section 3
       "burningSensation", "painWhileWalking", "skinChanges", "sensationLoss",
-      "nailProblems", "fungalInfection", "skinLesions", "openWound", "cellulitis",
-      "monofilamentLeftA", "monofilamentLeftB", "monofilamentLeftC",
-      "monofilamentRightA", "monofilamentRightB", "monofilamentRightC",
-      "footDeformities", "hairGrowth", "pulsesPalpable", "ulcerPresence"
+      "nailProblems", "fungalInfection", "skinLesions", "openWound", 
+      //"cellulitis", "monofilamentLeftA", "monofilamentLeftB", "monofilamentLeftC",
+      // "monofilamentRightA", "monofilamentRightB", "monofilamentRightC",
+      "footDeformities", "hairGrowth", "pulsesPalpable", 
     ];
     return radioFields.includes(field);
   };
@@ -262,19 +281,23 @@ const StepForm = () => {
       cultureReport: flatData.cultureReport || flatData.culture_report,
       footImage: flatData.footImage || flatData.foot_image,
     });
-    console.log("Preview path set to:", nestedData.section2.woundReferenceFilePreview);
+    console.log("Preview path set to:", nestedData.section1.consentFormPreview);
+    console.log("Image field values in flatData:", {
+      
+      cultureReport: flatData.cultureReport || flatData.culture_report,
+    });
     // Add these checks to identify where the preview might be getting lost:
    
     const fieldMappings = {
       section1: {
         hasUlcer: ["hasUlcer", "has_ulcer"],
-        hasAmputation: ["hasAmputation", "has_amputation"],
+        // hasAmputation: ["hasAmputation", "has_amputation"],
         hasAngioplasty: ["hasAngioplasty", "has_angioplasty"],
         renal: ["renal"],
         retinal: ["retinal"],
         cardiovascular: ["cardiovascular"],
         cerebrovascular: ["cerebrovascular"],
-        imbIschemia: ["imbIschemia", "imb_ischemia"],
+        // imbIschemia: ["imbIschemia", "imb_ischemia"],
         hypertension: ["hypertension"],
         consentDownloaded: ["consentDownloaded", "consent_downloaded"],
         consentUploaded: ["consentUploaded", "consent_uploaded"],
@@ -283,24 +306,24 @@ const StepForm = () => {
       
         consentForm: ["consentForm", "consent_form"],
         arterialReport: ["arterialReport", "arterial_report"],
-        cultureReport: ["cultureReport", "culture_report"],
+       
         woundReferenceFile: ["woundReferenceFile", "wound_reference_file"],
       },
       section2: {
         necrosis: ["necrosis"],
         gangrene: ["gangrene"],
-        boneExposure: ["boneExposure", "bone_exposure"],
-        osteomyelitis: ["osteomyelitis"],
+        // probetobone: ["probetobone", "bone_exposure"],
+        // osteomyelitis: ["osteomyelitis"],
         sepsis: ["sepsis"],
         arterialIssues: ["arterialIssues", "arterial_issues"],
-        infection: ["infection"],
-        swelling: ["swelling"],
-        erythema: ["erythema"],
-        tenderness: ["tenderness"],
-        warmth: ["warmth"],
-        discharge: ["discharge"],
+        // infection: ["infection"],
+        // swelling: ["swelling"],
+        // erythema: ["erythema"],
+        // tenderness: ["tenderness"],
+        // warmth: ["warmth"],
+    
         necrosisPhoto: ["necrosisPhoto", "necrosis_photo"],
-
+        cultureReport: ["cultureReport", "culture_report"],
         woundReferenceFile: ["woundReferenceFile", "wound_reference_file"],
       },
       section3: {
@@ -312,7 +335,7 @@ const StepForm = () => {
         fungalInfection: ["fungalInfection", "fungal_infection"],
         skinLesions: ["skinLesions", "skin_lesions"],
         openWound: ["openWound", "open_wound"],
-        cellulitis: ["cellulitis"],
+        // cellulitis: ["cellulitis"],
         monofilamentLeftA: ["monofilamentLeftA", "monofilament_left_a"],
         monofilamentLeftB: ["monofilamentLeftB", "monofilament_left_b"],
         monofilamentLeftC: ["monofilamentLeftC", "monofilament_left_c"],
@@ -329,7 +352,7 @@ const StepForm = () => {
         hairGrowth: ["hairGrowth", "hair_growth"],
         pulsesPalpable: ["pulsesPalpable", "pulses_palpable"],
         skinTemperature: ["skinTemperature", "skin_temperature"],
-        ulcerPresence: ["ulcerPresence", "ulcer_presence"],
+        // ulcerPresence: ["ulcerPresence", "ulcer_presence"],
       
       
         footImage: ["footImage", "foot_image"],
@@ -364,33 +387,42 @@ const StepForm = () => {
           value = flatData[field];
         }
 
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
           if (isBooleanField) {
             nestedData[section][field] = convertToYesNo(value);
           } else if (imageFields.includes(field)) {
             nestedData[section][field] = value || "";
-
-            // Set Preview URL for images and files
             const previewField = `${field}Preview`;
             if (nestedData[section].hasOwnProperty(previewField)) {
-              if (value) {
-                // Check if value is already a data URL (new upload)
-                if (typeof value === 'object' && value instanceof File) {
-                  // This case should be handled by the upload function
-                  nestedData[section][previewField] = "";
-                } else {
-                  // Handle API response (string path)
-                  const isPdf = value.toLowerCase().endsWith('.pdf');
-                  nestedData[section][previewField] = isPdf
-                    ? `${IMAGE_BASE_URL}${value}`
-                    : `${IMAGE_BASE_URL}${value}`;
-                }
+              if (value && typeof value === 'string' && value.trim() !== '') {
+                const isPdf = value.toLowerCase().endsWith('.pdf');
+                nestedData[section][previewField] = isPdf
+                  ? `${IMAGE_BASE_URL}${value}`
+                  : `${IMAGE_BASE_URL}${value}`;
               } else {
-                nestedData[section][previewField] = "";
+                nestedData[section][previewField] = '/pdf-icon.png'; // Fallback for empty/invalid values
               }
             }
+            // Set consentFormName for edit mode
+            if (field === "consentForm" && value && typeof value === 'string' && value.trim() !== '') {
+              nestedData[section].consentFormName = value.split('/').pop() || 'consent_form.pdf';
+            } else if (field === "consentFormName" && value && typeof value === 'string') {
+              nestedData[section].consentFormName = value || 'consent_form.pdf';
+            }
           } else {
-            nestedData[section][field] = value !== null ? String(value) : "";
+            nestedData[section][field] = String(value);
+          }
+        } else {
+          // Handle null/undefined values
+          nestedData[section][field] = "";
+          if (field === "consentFormName") {
+            nestedData[section].consentFormName = 'consent_form.pdf';
+          }
+          if (imageFields.includes(field)) {
+            const previewField = `${field}Preview`;
+            if (nestedData[section].hasOwnProperty(previewField)) {
+              nestedData[section][previewField] = '/pdf-icon.png';
+            }
           }
         }
       });
@@ -398,7 +430,7 @@ const StepForm = () => {
 
     console.log("Mapped Nested Data:", nestedData);
     return nestedData;
-  }    
+  }
   
   
   const convertToYesNo = (value) => {
@@ -535,29 +567,29 @@ const StepForm = () => {
       const booleanFields = {
         section1: [
           "hasUlcer",
-          "hasAmputation",
+          
           "hasAngioplasty",
           "renal",
           "retinal",
           "cardiovascular",
           "cerebrovascular",
-          "imbIschemia",
+          // "imbIschemia",
           "hypertension",
           "limbIschemia",
         ],
         section2: [
           "necrosis",
           "gangrene",
-          "boneExposure",
-          "osteomyelitis",
+          // "probetobone",
+          // "osteomyelitis",
           "sepsis",
           "arterialIssues",
-          "infection",
+          // "infection",
           "swelling",
           "erythema",
           "tenderness",
           "warmth",
-          "discharge",
+         
           "cultureReportAvailable",
         ],
         section3: [
@@ -569,11 +601,11 @@ const StepForm = () => {
           "fungalInfection",
           "skinLesions",
           "openWound",
-          "cellulitis",
+          // "cellulitis",
           "footDeformities",
           "hairGrowth",
           "pulsesPalpable",
-          "ulcerPresence",
+          // "ulcerPresence",
           // "cultureReportAvailable",
         ],
       }
@@ -601,33 +633,45 @@ const StepForm = () => {
 
   // Handle form field changes and track edited fields
   const handleChange = (e, section) => {
-    const { name, value, type, checked, files } = e.target
-    const newValue = type === "checkbox" ? checked : type === "radio" ? value : type === "file" ? files[0] : value
-
+    const { name, value, type, checked, files } = e.target;
+  
+    let newValue;
+    if (type === "checkbox") {
+      newValue = checked;
+    } else if (type === "radio") {
+      newValue = value;
+    } else if (type === "file") {
+      newValue = files[0];
+    } else {
+      // Convert `sesRating` to number if matched
+      newValue = name === "sesRating" ? Number(value) : value;
+    }
+  
     setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
         [name]: newValue,
       },
-    }))
-
+    }));
+  
     setEditedFields((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
         [name]: newValue,
       },
-    }))
-
+    }));
+  
     if (errors[name]) {
       setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
+  
 
   // Define required fields for each step
   const requiredFields = {
@@ -635,32 +679,70 @@ const StepForm = () => {
       "patient_name",
       "age",
       "gender",
-      "locality",
-      "facilityName",
-      "facilityLocation",
-      "facilityType",
+      // "facilityEmail",
+      // "locality",
+      // "facilityName",
+      // "facilityLocation",
+      // "facilityType",
+      "treatmentType",
       "education",
       "occupation",
       "maritalStatus",
-      "monthlyIncome",
+      // "monthlyIncome",
+      "sesRating",
       "familyMembers",
       "dependents",
       "diabetesType",
       "diabetesDuration",
+     
+      "hasUlcer",
+      "hasAmputation",
+      "hasAngioplasty",
+      "renal",
+      // ...(formData.section1.renal?.toLowerCase() === "yes" ? ["renalDuration"] : []),
+
+      "retinal",
+      // ...(formData.section1.retinal.toLowerCase() === "yes" ? ["retinalDuration"] : []),
+      "cardiovascular",
+      // ...(formData.section1.cardiovascular.toLowerCase() === "yes" ? ["cardiovascularDuration"] : []),
+      "heartFailure",
+      // ...(formData.section1.heartFailure.toLowerCase() === "yes" ? ["heartFailureDuration"] : []),
+      "cerebrovascular",
+      // ...(formData.section1.cerebrovascular.toLowerCase() === "yes" ? ["cerebrovascularDuration"] : []),
+      "limbIschemia",
+      // ...(formData.section1.limbIschemia.toLowerCase() === "yes" ? ["limbIschemiaDuration"] : []),
+      "hypertension",
+      // ...(formData.section1.hypertension.toLowerCase() === "yes" ? ["hypertensionDuration"] : []),
+      "smoking",
+      "alcohol",
+      "tobacco",
+      "wearShoes",
+      "wearSlippers",
+      "walkOnSand",
+      "washFeet",
+      "fastingGlucose",
+      "postPrandialGlucose",
+      "hba1c",
+      // "totalCholesterol",
+      // "triglycerides",
+      // "hdl",
+      // "ldl",
+      // "vldl",
+      "serumCreatinine"
     ],
     2: [
-      "onsetFootUlcer",
-      "firstTreatmentDate",
+      // "onsetFootUlcer",
+      // "firstTreatmentDate",
       "firstAssessment",
-      "attendedBefore",
-      ...(formData.section2.attendedBefore === "Yes"
-        ? ["facilityVisited", "intervalToAssessment", "referredBy", "treatedDays", "referredInDays", "visitedInDays"]
-        : []),
+      // "attendedBefore",
+      // ...(formData.section2.attendedBefore.toLowerCase() === "yes"
+      //   ? ["facilityVisited", "intervalToAssessment", "referredBy", "treatedDays", "referredInDays", "visitedInDays"]
+      //   : []),
       // "necrosis",
       // ...(formData.section2.necrosis === "Yes" ? ["necrosisPhoto"] : []),
       "gangrene",
-      ...(formData.section2.gangrene === "Yes" ? ["gangreneType"] : []),
-      "boneExposure",
+      ...(formData.section2.gangrene.toLowerCase() === "yes" ? ["gangreneType"] : []),
+      "probetobone",
       "osteomyelitis",
       "sepsis",
       "arterialIssues",
@@ -669,21 +751,40 @@ const StepForm = () => {
       "erythema",
       "tenderness",
       "warmth",
-      // "discharge",
+      "necrosis",
+      "purulentDischarge",
+      "antibioticsGiven",
+     "leg",
+"foot",
+
+// Conditionally require foot sections based on selected foot
+...(formData.section2.foot === 'right' || formData.section2.foot === 'both' ? [
+  'rightFoot_forefoot',
+  'rightFoot_hindfoot',
+  'rightFoot_midfoot'
+] : []),
+
+...(formData.section2.foot === 'left' || formData.section2.foot === 'both' ? [
+  'leftFoot_forefoot',
+  'leftFoot_hindfoot',
+  'leftFoot_midfoot'
+] : []),
       // "cultureReport",
+      "cultureReportAvailable",
       "woundSize",
-      "woundLocation",
+      // "woundLocation",
       "woundDuration",
-      "woundClassification",
+      // "woundClassification",
       "socGiven",
       ...(formData.section2.socGiven === "Yes" ? ["socDetails"] : []),
       "dressingMaterial",
       "offloadingDevice",
-      "hospitalization",
+      // "hospitalization",
       "amputation",
-      ...(formData.section2.amputation === "Major" ? ["amputationLevel"] : []),
-      "debridementWithAmputation",
+      
     ],
+    // ...(formData.section2.amputation === "Major" ? ["amputationLevel"] : []),
+    //   "debridementWithAmputation",
     3: [
       "burningSensation",
       "painWhileWalking",
@@ -693,7 +794,7 @@ const StepForm = () => {
       "fungalInfection",
       "skinLesions",
       "openWound",
-      "cellulitis",
+      // "cellulitis",
 
       // "monofilament",
       // "tuningFork",
@@ -717,6 +818,7 @@ const StepForm = () => {
       "hairGrowth",
       "pulsesPalpable",
       "skinTemperature",
+
       // Removed deformityDuration from unconditional required fields
       ...(formData.section3.footDeformities === "yes" ? ["deformityDuration"] : []),
       "testType", // This is always required
@@ -747,23 +849,23 @@ const StepForm = () => {
   }
 
   // Validate consent form for step 1
-  const validateConsentForm = () => {
-    const newErrors = {}
-    let isValid = true
+  // const validateConsentForm = () => {
+  //   const newErrors = {}
+  //   let isValid = true
 
-    if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
-      newErrors.consentForm = "Please upload the signed consent form"
-      isValid = false
-    }
+  //   if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
+  //     newErrors.consentForm = "Please upload the signed consent form"
+  //     isValid = false
+  //   }
 
-    if (!formData.section1.consentVerified) {
-      newErrors.consentVerified = "Please verify that you've uploaded the signed consent form"
-      isValid = false
-    }
+  //   if (!formData.section1.consentVerified) {
+  //     newErrors.consentVerified = "Please verify that you've uploaded the signed consent form"
+  //     isValid = false
+  //   }
 
-    setErrors((prev) => ({ ...prev, ...newErrors }))
-    return isValid
-  }
+  //   setErrors((prev) => ({ ...prev, ...newErrors }))
+  //   return isValid
+  // }
 
   // Validate current step
   // Update validateCurrentStep
@@ -773,17 +875,17 @@ const StepForm = () => {
     let isValid = true;
 
     console.log(`Validating Step ${step} fields:`, currentStepFields);
-
-    if (step === 1) {
-      if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
-        newErrors.consentForm = 'Please upload the signed consent form';
-        isValid = false;
-      }
-      if (!formData.section1.consentVerified) {
-        newErrors.consentVerified = 'Please verify the consent form';
-        isValid = false;
-      }
-    }
+    console.log(`Validating Step ${step} fields:`, currentStepFields);
+    // if (step === 1) {
+    //   if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
+    //     newErrors.consentForm = 'Please upload the signed consent form';
+    //     isValid = false;
+    //   }
+    //   if (!formData.section1.consentVerified) {
+    //     newErrors.consentVerified = 'Please verify the consent form';
+    //     isValid = false;
+    //   }
+    // }
 
     currentStepFields.forEach((field) => {
       let fieldValue;
@@ -848,18 +950,18 @@ const StepForm = () => {
     for (let stepNum = 1; stepNum <= 3; stepNum++) {
       const stepFields = requiredFields[stepNum]
 
-      if (stepNum === 1) {
-        if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
-          newErrors.consentForm = "Please upload the signed consent form"
-          missingFieldsByStep[1].push("consentForm")
-          allValid = false
-        }
-        if (!formData.section1.consentVerified) {
-          newErrors.consentVerified = "Please verify the consent form"
-          missingFieldsByStep[1].push("consentVerified")
-          allValid = false
-        }
-      }
+      // if (stepNum === 1) {
+      //   if (!formData.section1.consentUploaded || !formData.section1.consentForm) {
+      //     newErrors.consentForm = "Please upload the signed consent form"
+      //     missingFieldsByStep[1].push("consentForm")
+      //     allValid = false
+      //   }
+      //   if (!formData.section1.consentVerified) {
+      //     newErrors.consentVerified = "Please verify the consent form"
+      //     missingFieldsByStep[1].push("consentVerified")
+      //     allValid = false
+      //   }
+      // }
 
       stepFields.forEach((field) => {
         const fieldValue = formData[`section${stepNum}`][field]
@@ -1054,9 +1156,14 @@ const StepForm = () => {
       if (!validateCurrentStep()) {
         throw new Error("Please fill all required fields")
       }
-
+      console.log('Step 3 validation failed. Errors:', errors);
       console.log("Submitting Step 3 data for patient ID:", id)
       const formDataToSubmit = prepareFormDataForAPI(3)
+      // 🔍 Log all key-value pairs from the FormData
+      console.log("FormData being submittedstep3:");
+      for (let [key, value] of formDataToSubmit.entries()) {
+        console.log(`${key}:`, value);
+      }
       const response = await fetch(`https://webstrategy.co.in/rssdi/api/patient/step3/${id}`, {
         method: "POST",
         body: formDataToSubmit,
@@ -1064,6 +1171,7 @@ const StepForm = () => {
 
       const data = await response.json()
       console.log("Step 3 API Response:", data)
+
       if (!response.ok) {
         const serverErrors = data.errors || {}
         const formattedErrors = {}
@@ -1118,53 +1226,38 @@ const StepForm = () => {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      const isValid = validateAllSteps()
+      const isValid = validateAllSteps();
       if (!isValid) {
-        toast.error("Please fill all required fields")
-        return
+        toast.error("Please fill all required fields");
+        return;
       }
 
-      if (isSaving) return
+      if (isSaving) return;
+      setIsSaving(true);
 
-      setIsSaving(true)
+      let patientIdToUse = patientId;
 
-      console.log("Form Data Before Submission:", JSON.parse(JSON.stringify(formData)))
-      console.log("Edited Fields:", editedFields)
-
-      let patientIdToUse = patientId
-
-      if (!patientIdToUse && !step1SubmittedRef.current) {
-        // New patient - submit step 1 first to get patient ID
-        step1SubmittedRef.current = true
-        patientIdToUse = await submitStep1()
-        setPatientId(patientIdToUse)
-      } else if (isEditMode) {
-        // For edit mode, submit all steps that have changes
-        if (Object.keys(editedFields.section1).length > 0) {
-          await submitStep1()
+      // For new submissions, submit steps sequentially
+      if (!isEditMode) {
+        if (!patientIdToUse) {
+          patientIdToUse = await submitStep1();
+          setPatientId(patientIdToUse);
         }
 
-        if (Object.keys(editedFields.section2).length > 0) {
-          await submitStep2(patientIdToUse)
-        }
-
-        if (Object.keys(editedFields.section3).length > 0) {
-          await submitStep3(patientIdToUse)
-        }
-        // Example: always validate some fields regardless
-        if (formData.section3.footDeformities === "yes" && !formData.section3.deformityDuration) {
-          errors.deformityDuration = "Please specify deformity duration";
-        }
-
-       
-       
+        await submitStep2(patientIdToUse);
+        await submitStep3(patientIdToUse);
+      } else {
+        // For edit mode, only submit changed sections
+        if (Object.keys(editedFields.section1).length > 0) await submitStep1();
+        if (Object.keys(editedFields.section2).length > 0) await submitStep2(patientIdToUse);
+        if (Object.keys(editedFields.section3).length > 0) await submitStep3(patientIdToUse);
       }
 
-      const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]")
-
+      // Save to local storage and navigate
+      const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
       const updatedRecord = {
         patientId: patientIdToUse,
         patient_name: formData.section1.patient_name,
@@ -1175,22 +1268,17 @@ const StepForm = () => {
         lastVisit: new Date().toISOString(),
         followUpDate: calculateFollowUpDate(new Date()).toISOString(),
         canEdit: true,
-      }
+      };
 
-      if (isEditMode) {
-        const updatedRecords = existingRecords.map((record) =>
-          record.patientId === patientIdToUse ? updatedRecord : record,
-        )
-        localStorage.setItem("patientRecords", JSON.stringify(updatedRecords))
-      } else {
-        const updatedRecords = [updatedRecord, ...existingRecords]
-        localStorage.setItem("patientRecords", JSON.stringify(updatedRecords))
-      }
+      // Update local storage
+      const updatedRecords = isEditMode
+        ? existingRecords.map(record => record.patientId === patientIdToUse ? updatedRecord : record)
+        : [updatedRecord, ...existingRecords];
+      localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
 
-      console.log("Updated Patient Record in localStorage:", updatedRecord)
-
-      localStorage.removeItem("stepFormData")
-      setEditedFields({ section1: {}, section2: {}, section3: {} })
+      // Clean up and navigate
+      localStorage.removeItem("stepFormData");
+      setEditedFields({ section1: {}, section2: {}, section3: {} });
 
       navigate("/user/rssdi-save-the-feet-2.0", {
         state: {
@@ -1201,14 +1289,14 @@ const StepForm = () => {
           refreshData: true,
         },
         replace: true,
-      })
+      });
     } catch (error) {
-      console.error("Submission error:", error)
-      toast.error(error.message || "Failed to submit form. Please try again.")
+      console.error("Submission error:", error);
+      toast.error(error.message || "Failed to submit form. Please try again.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   // Handle file upload
   const handleFileUpload = (e) => {

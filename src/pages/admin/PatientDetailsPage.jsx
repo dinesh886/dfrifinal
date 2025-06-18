@@ -53,7 +53,7 @@ const PatientDetailsPage = () => {
             retinal: "",
             cardiovascular: "",
             cerebrovascular: "",
-            imbIschemia: "",
+            // imbIschemia: "",
             hypertension: "",
             heartFailure: "",
             limbIschemia: "",
@@ -92,7 +92,7 @@ const PatientDetailsPage = () => {
             necrosisPhotoPreview: "",
             gangrene: "",
             gangreneType: "",
-            boneExposure: "",
+            probetobone: "",
             osteomyelitis: "",
             sepsis: "",
             arterialIssues: "",
@@ -101,7 +101,7 @@ const PatientDetailsPage = () => {
             erythema: "",
             tenderness: "",
             warmth: "",
-            discharge: "",
+         
             cultureReport: "",
             woundSize: "",
             woundLocation: "",
@@ -116,8 +116,7 @@ const PatientDetailsPage = () => {
             amputationType: "",
             amputationLevel: "",
             debridementWithAmputation: "",
-            deathDate: "",
-            deathReason: "",
+           
             woundReferenceFile: null,
             woundReferenceConsent: "",
             woundReferenceFilePreview: null,
@@ -152,8 +151,8 @@ const PatientDetailsPage = () => {
             hairGrowth: "",
             pulsesPalpable: "",
             skinTemperature: "",
-            ulcerPresence: "",
-            cultureReportAvailable: "",
+            // ulcerPresence: "",
+           
             footImage: "",
         },
     }
@@ -172,13 +171,13 @@ const PatientDetailsPage = () => {
             "retinal",
             "cardiovascular",
             "cerebrovascular",
-            "imbIschemia",
+            // "imbIschemia",
             "hypertension",
             "limbIschemia",
             // Section 2
             "necrosis",
             "gangrene",
-            "boneExposure",
+            "probetobone",
             "osteomyelitis",
             "sepsis",
             "arterialIssues",
@@ -187,7 +186,7 @@ const PatientDetailsPage = () => {
             "erythema",
             "tenderness",
             "warmth",
-            "discharge",
+         
             // Section 3
             "burningSensation",
             "painWhileWalking",
@@ -207,7 +206,7 @@ const PatientDetailsPage = () => {
             "footDeformities",
             "hairGrowth",
             "pulsesPalpable",
-            "ulcerPresence",
+            // "ulcerPresence",
         ]
         return radioFields.includes(field)
     }
@@ -227,7 +226,7 @@ const PatientDetailsPage = () => {
                 retinal: ["retinal"],
                 cardiovascular: ["cardiovascular"],
                 cerebrovascular: ["cerebrovascular"],
-                imbIschemia: ["imbIschemia", "imb_ischemia"],
+                // imbIschemia: ["imbIschemia", "imb_ischemia"],
                 hypertension: ["hypertension"],
                 consentDownloaded: ["consentDownloaded", "consent_downloaded"],
                 consentUploaded: ["consentUploaded", "consent_uploaded"],
@@ -237,7 +236,7 @@ const PatientDetailsPage = () => {
             section2: {
                 necrosis: ["necrosis"],
                 gangrene: ["gangrene"],
-                boneExposure: ["boneExposure", "bone_exposure"],
+                probetobone: ["probetobone", "bone_exposure"],
                 osteomyelitis: ["osteomyelitis"],
                 sepsis: ["sepsis"],
                 arterialIssues: ["arterialIssues", "arterial_issues"],
@@ -246,7 +245,7 @@ const PatientDetailsPage = () => {
                 erythema: ["erythema"],
                 tenderness: ["tenderness"],
                 warmth: ["warmth"],
-                discharge: ["discharge"],
+               
             },
             section3: {
                 burningSensation: ["burningSensation", "burning_sensation"],
@@ -274,7 +273,7 @@ const PatientDetailsPage = () => {
                 hairGrowth: ["hairGrowth", "hair_growth"],
                 pulsesPalpable: ["pulsesPalpable", "pulses_palpable"],
                 skinTemperature: ["skinTemperature", "skin_temperature"],
-                ulcerPresence: ["ulcerPresence", "ulcer_presence"],
+                // ulcerPresence: ["ulcerPresence", "ulcer_presence"],
             },
         }
 
@@ -886,7 +885,7 @@ const PatientDetailsPage = () => {
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Bone Exposure</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section2?.boneExposure)}</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.probetobone)}</div>
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Osteomyelitis</div>
@@ -1009,10 +1008,10 @@ const PatientDetailsPage = () => {
                                             <div className="info-label">Skin Temperature</div>
                                             <div className="info-value">{renderValue(patient.section3?.skinTemperature)}</div>
                                         </div>
-                                        <div className="info-row">
+                                        {/* <div className="info-row">
                                             <div className="info-label">Ulcer Presence</div>
                                             <div className="info-value">{renderStatusBadge(patient.section3?.ulcerPresence)}</div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
 

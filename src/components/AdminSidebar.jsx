@@ -67,7 +67,8 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
             { path: '/admin/profile', icon: <UserCog />, label: 'Profile' },
             { path: '/admin/change-password', icon: <Lock />, label: 'Change Password' },
             { path: '/admin/SubadminForm', icon: <UserRoundPlus />, label: 'Add Subadmin' },
-            { path: '/admin/SubAdminList', icon: <UserLock />, label: 'SubAdmins List' },
+            { path: '/admin/SubAdminList', icon: <UserLock />, label: 'Sub-Admins List' }
+
         ] : [])
     ];
 

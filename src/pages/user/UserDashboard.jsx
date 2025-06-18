@@ -95,7 +95,7 @@ const UserDashboard = () => {
                 retinal: convertToYesNo(patient.formData?.section1?.retinal || patient.originalRecord?.retinal),
                 cardiovascular: convertToYesNo(patient.formData?.section1?.cardiovascular || patient.originalRecord?.cardiovascular),
                 cerebrovascular: convertToYesNo(patient.formData?.section1?.cerebrovascular || patient.originalRecord?.cerebrovascular),
-                imbIschemia: convertToYesNo(patient.formData?.section1?.imbIschemia || patient.originalRecord?.imbIschemia),
+                // imbIschemia: convertToYesNo(patient.formData?.section1?.imbIschemia || patient.originalRecord?.imbIschemia),
                 hypertension: convertToYesNo(patient.formData?.section1?.hypertension || patient.originalRecord?.hypertension),
                 consentDownloaded: convertToYesNo(patient.formData?.section1?.consentDownloaded || patient.originalRecord?.consentDownloaded),
                 consentUploaded: convertToYesNo(patient.formData?.section1?.consentUploaded || patient.originalRecord?.consentUploaded),
@@ -106,7 +106,7 @@ const UserDashboard = () => {
                 ...patient.formData?.section2,
                 necrosis: convertToYesNo(patient.formData?.section2?.necrosis || patient.originalRecord?.necrosis),
                 gangrene: convertToYesNo(patient.formData?.section2?.gangrene || patient.originalRecord?.gangrene),
-                boneExposure: convertToYesNo(patient.formData?.section2?.boneExposure || patient.originalRecord?.boneExposure),
+                probetobone: convertToYesNo(patient.formData?.section2?.probetobone || patient.originalRecord?.probetobone),
                 osteomyelitis: convertToYesNo(patient.formData?.section2?.osteomyelitis || patient.originalRecord?.osteomyelitis),
                 sepsis: convertToYesNo(patient.formData?.section2?.sepsis || patient.originalRecord?.sepsis),
                 arterialIssues: convertToYesNo(patient.formData?.section2?.arterialIssues || patient.originalRecord?.arterialIssues),
@@ -115,7 +115,7 @@ const UserDashboard = () => {
                 erythema: convertToYesNo(patient.formData?.section2?.erythema || patient.originalRecord?.erythema),
                 tenderness: convertToYesNo(patient.formData?.section2?.tenderness || patient.originalRecord?.tenderness),
                 warmth: convertToYesNo(patient.formData?.section2?.warmth || patient.originalRecord?.warmth),
-                discharge: convertToYesNo(patient.formData?.section2?.discharge || patient.originalRecord?.discharge),
+                // discharge: convertToYesNo(patient.formData?.section2?.discharge || patient.originalRecord?.discharge),
                 necrosisPhoto: patient.formData?.section2?.necrosisPhoto || patient.originalRecord?.necrosisPhoto,
                 
             },
@@ -130,17 +130,17 @@ const UserDashboard = () => {
                 skinLesions: convertToYesNo(patient.formData?.section3?.skinLesions || patient.originalRecord?.skinLesions),
                 openWound: convertToYesNo(patient.formData?.section3?.openWound || patient.originalRecord?.openWound),
                 cellulitis: convertToYesNo(patient.formData?.section3?.cellulitis || patient.originalRecord?.cellulitis),
-                monofilamentLeftA: convertToYesNo(patient.formData?.section3?.monofilamentLeftA || patient.originalRecord?.monofilamentLeftA),
-                monofilamentLeftB: convertToYesNo(patient.formData?.section3?.monofilamentLeftB || patient.originalRecord?.monofilamentLeftB),
-                monofilamentLeftC: convertToYesNo(patient.formData?.section3?.monofilamentLeftC || patient.originalRecord?.monofilamentLeftC),
-                monofilamentRightA: convertToYesNo(patient.formData?.section3?.monofilamentRightA || patient.originalRecord?.monofilamentRightA),
-                monofilamentRightB: convertToYesNo(patient.formData?.section3?.monofilamentRightB || patient.originalRecord?.monofilamentRightB),
-                monofilamentRightC: convertToYesNo(patient.formData?.section3?.monofilamentRightC || patient.originalRecord?.monofilamentRightC),
+                // monofilamentLeftA: convertToYesNo(patient.formData?.section3?.monofilamentLeftA || patient.originalRecord?.monofilamentLeftA),
+                // monofilamentLeftB: convertToYesNo(patient.formData?.section3?.monofilamentLeftB || patient.originalRecord?.monofilamentLeftB),
+                // monofilamentLeftC: convertToYesNo(patient.formData?.section3?.monofilamentLeftC || patient.originalRecord?.monofilamentLeftC),
+                // monofilamentRightA: convertToYesNo(patient.formData?.section3?.monofilamentRightA || patient.originalRecord?.monofilamentRightA),
+                // monofilamentRightB: convertToYesNo(patient.formData?.section3?.monofilamentRightB || patient.originalRecord?.monofilamentRightB),
+                // monofilamentRightC: convertToYesNo(patient.formData?.section3?.monofilamentRightC || patient.originalRecord?.monofilamentRightC),
                 footDeformities: convertToYesNo(patient.formData?.section3?.footDeformities || patient.originalRecord?.footDeformities),
                 hairGrowth: convertToYesNo(patient.formData?.section3?.hairGrowth || patient.originalRecord?.hairGrowth),
                 pulsesPalpable: convertToYesNo(patient.formData?.section3?.pulsesPalpable || patient.originalRecord?.pulsesPalpable),
                 skinTemperature: convertToYesNo(patient.formData?.section3?.skinTemperature || patient.originalRecord?.skinTemperature),
-                ulcerPresence: convertToYesNo(patient.formData?.section3?.ulcerPresence || patient.originalRecord?.ulcerPresence),
+                // ulcerPresence: convertToYesNo(patient.formData?.section3?.ulcerPresence || patient.originalRecord?.ulcerPresence),
             }
         };
 
@@ -234,12 +234,12 @@ const UserDashboard = () => {
                     "retinal",
                     "cardiovascular",
                     "cerebrovascular",
-                    "imbIschemia",
+                    // "imbIschemia",
                     "hypertension",
                     "limbIschemia",
                     "necrosis",
                     "gangrene",
-                    "boneExposure",
+                    "probetobone",
                     "osteomyelitis",
                     "sepsis",
                     "arterialIssues",
@@ -248,7 +248,7 @@ const UserDashboard = () => {
                     "erythema",
                     "tenderness",
                     "warmth",
-                    "discharge",
+                 
                     "burningSensation",
                     "painWhileWalking",
                     "skinChanges",
@@ -261,7 +261,7 @@ const UserDashboard = () => {
                     "footDeformities",
                     "hairGrowth",
                     "pulsesPalpable",
-                    "ulcerPresence",
+                    // "ulcerPresence",
                 ]
 
                 // Create a normalized record with consistent boolean values
@@ -279,9 +279,9 @@ const UserDashboard = () => {
                     appointmentDate: record.appointment_date || record.created_at || new Date().toISOString(),
                     diagnosis: record.diagnosis || "N/A",
                     status: record.status || "Completed",
-                    lastVisit: record.last_visit || record.appointment_date || new Date().toISOString(),
+                    lastVisit: record.last_visit || record.updated_at || new Date().toISOString(),
                     followUpDate,
-                    followUpStatus: record.follow_up_status || status,
+                    follow_up_status: record.follow_up_status || status,
                     submissionDate,
                     canEdit: !is24HoursPassed(submissionDate),
                     lastFollowUpDate: record.last_follow_up_date || null,
@@ -321,7 +321,7 @@ const UserDashboard = () => {
                             retinal: normalizeYesNo(record.retinal),
                             cardiovascular: normalizeYesNo(record.cardiovascular),
                             cerebrovascular: normalizeYesNo(record.cerebrovascular),
-                            imbIschemia: normalizeYesNo(record.imbIschemia),
+                            // imbIschemia: normalizeYesNo(record.imbIschemia),
                             hypertension: normalizeYesNo(record.hypertension),
                             heartFailure: record.heartFailure || "",
                             limbIschemia: normalizeYesNo(record.limbIschemia),
@@ -353,10 +353,11 @@ const UserDashboard = () => {
                             treatedDays: record.treatedDays || "",
                             referredInDays: record.referredInDays || "",
                             visitedInDays: record.visitedInDays || "",
+                            purulentDischarge: record.purulentDischarge || "",
                             necrosis: normalizeYesNo(record.necrosis),
                             gangrene: normalizeYesNo(record.gangrene),
                             gangreneType: record.gangreneType || "",
-                            boneExposure: normalizeYesNo(record.boneExposure || record.bone_exposure),
+                            probetobone: normalizeYesNo(record.probetobone || record.bone_exposure),
                             osteomyelitis: normalizeYesNo(record.osteomyelitis),
                             sepsis: normalizeYesNo(record.sepsis),
                             arterialIssues: normalizeYesNo(record.arterialIssues),
@@ -365,7 +366,7 @@ const UserDashboard = () => {
                             erythema: normalizeYesNo(record.erythema),
                             tenderness: normalizeYesNo(record.tenderness),
                             warmth: normalizeYesNo(record.warmth),
-                            discharge: normalizeYesNo(record.discharge),
+                            // discharge: normalizeYesNo(record.discharge),
                             cultureReport: record.cultureReport || "",
                             cultureReportAvailable: normalizeYesNo(record.cultureReportAvailable),
                             woundSize: record.woundSize || "",
@@ -381,8 +382,7 @@ const UserDashboard = () => {
                             amputationType: record.amputationType || "",
                             amputationLevel: record.amputationLevel || "",
                             debridementWithAmputation: record.debridementWithAmputation || "",
-                            deathDate: record.deathDate || "",
-                            deathReason: record.deathReason || "",
+                       
                             woundReferenceFile:"",
                             woundReferenceConsent: normalizeYesNo(record.woundReferenceConsent),
                             woundReferenceFilePreview: null,
@@ -408,7 +408,7 @@ const UserDashboard = () => {
                             hairGrowth: normalizeYesNo(record.hair_growth || record.hairGrowth),
                             pulsesPalpable: normalizeYesNo(record.pulses_palpable || record.pulsesPalpable),
                             skinTemperature: record.skin_temperature || record.skinTemperature || "",
-                            ulcerPresence: normalizeYesNo(record.ulcer_presence || record.ulcerPresence),
+                            // ulcerPresence: normalizeYesNo(record.ulcer_presence || record.ulcerPresence),
                             cultureReportAvailable: normalizeYesNo(record.culture_report_available || record.cultureReportAvailable),
                         },
                     },
@@ -608,11 +608,12 @@ const UserDashboard = () => {
             },
         },
         {
-            key: "followUpStatus",
+            key: "follow_up_status",
             header: "Follow Up",
             sortable: true,
             render: (_, row) => {
-                const status = row.followUpStatus
+                // Add null check and default value
+                const status = row.followUpStatus || row.follow_up_status || "Pending"
 
                 const handleClick = () => {
                     if (status === "Due") {
@@ -686,6 +687,7 @@ const UserDashboard = () => {
                     showDownloadSample={true}
                     showUploadExcel={true}
                     showExport={false}
+                    showaddsubadmin={false}
                     showDownloadSubadmin={false}
                     showDirectExport={false}
                     searchPlaceholder="Search patients..."
@@ -695,6 +697,7 @@ const UserDashboard = () => {
                     title="Patient Records"
                     extraProps={{ currentTime }}
                     rawExportData={doctorData}
+                    loadPatientRecords={loadPatientRecords} // Add this line
                 />
 
                 {showUploadPopup && currentPatient && (

@@ -201,12 +201,12 @@ const FollowUpForm = () => {
         if (record.patientId === patientId) {
           return {
             ...record,
-            followUpStatus: response.data.follow_up_status || "Completed",
-            lastFollowUpDate: response.data.last_follow_up_date || now.toISOString(),
-            followUpDate: nextFollowUpDate.toISOString(),
+            follow_up_status: response.data.follow_up_status || "Completed",
+            last_follow_up_date: response.data.last_follow_up_date || now.toISOString(),
+            follow_up_date: nextFollowUpDate.toISOString(),
             followUpData: {
               ...formData.section4,
-              followUpDate: now.toISOString(),
+              follow_up_date: now.toISOString(),
             },
             ...(location.state?.isInitialFollowUp && {
               initialFollowUpCompleted: now.toISOString(),

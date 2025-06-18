@@ -98,13 +98,13 @@
 .medical-add-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  /* gap: 2rem; */
 }
 
 .medical-add-section {
   background-color: var(--secondary-color);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
+  /* border-radius: var(--radius-md); */
+  padding: 0.6rem 1.5rem;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
@@ -135,16 +135,46 @@
   border-radius: var(--radius-sm);
 }
 
+/* Strict 3-column row (no wrapping) */
 .medical-add-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 equal columns */
+  gap: 1rem; /* Consistent spacing between columns */
+  width: 100%; /* Ensures full container width */
+  /* margin-bottom: 1.5rem; */
+}
+.medical-add-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Forces exactly 3 equal columns */
+  gap: 1rem; /* Consistent spacing between columns */
+  width: 100%; /* Ensures full container width */
+  /* margin-bottom: 1.5rem; */
+}
+.margin-right{
+  margin-right: 20px;
+}
+.medical-add-row3 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Forces exactly 3 equal columns */
+  gap: 1rem; /* Consistent spacing between columns */
+  width: 100%; /* Ensures full container width */
+  /* margin-bottom: 1.5rem; */
 }
 
+/* Column containers */
 .medical-add-group {
-  flex: 1 1 300px;
-  margin-bottom: 1rem;
+  min-width: 0; /* Prevents content overflow */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Radio button groups - now locked to columns */
+.medical-add-radio-group {
+  display: flex;
+  gap: 0.2rem;
+  flex-wrap: nowrap; /* Prevents wrapping within columns */
+  align-items: center;
+  padding: 0.25rem 0;
 }
 
 /* Form elements */
@@ -205,13 +235,7 @@
   padding-left: 2.5rem;
 }
 
-/* Radio buttons */
-.medical-add-radio-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-}
+
 
 .medical-add-radio-label {
   display: flex;
@@ -1485,4 +1509,91 @@ body {
 }
 .new-option{
   width: 50%;
+}
+.view-pdf{
+  padding: 2px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  /* margin: 15px 5px ; */
+  margin-left: 15px;
+  margin-top: 10px;
+  border: 1px solid ;
+  width: 10px 20px ;
+}
+.woundReferenceConsent{
+  display: none;
+}
+/* SES Rating Styles */
+.ses-rating-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ses-rating-option {
+  width: 36px;
+  height: 27px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: white;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.ses-rating-option:hover {
+  background-color: #f0f0f0;
+}
+
+.ses-rating-selected {
+  background-color: var(--primary-color);
+  color: white;
+  border-color:var(--primary-color);
+}
+.ses-rating-selected:hover {
+  background-color: #fff;
+  color: var(--primary-color);
+  
+}
+
+.ses-instruction {
+  margin: 4px 0 8px 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.subtittle2{
+  border-bottom: 2px solid;
+  width: 50px;
+ color: var(--primary-color);
+}
+.foot-title{
+  
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+   
+    padding-bottom: 0.75rem;
+   
+    position: relative;
+}
+.facility-info-note {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between icon and text */
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+}
+
+.info-icon {
+  font-size: 18px;
+ 
+}
+
+.info-text {
+  margin: 0;
 }

@@ -95,6 +95,7 @@ const UserLogin = () => {
     };
 
     const handleGoogleSuccess = async (credentialResponse) => {
+           setIsLoading(true); // Show loader
         try {
             const decoded = jwtDecode(credentialResponse.credential);
             const googleEmail = decoded.email;
@@ -161,11 +162,14 @@ const UserLogin = () => {
         } catch (err) {
             console.error("Google login error:", err);
             toast.error(err.message || "Google login failed. Please try again.");
-        }
+        } finally {
+        setIsLoading(false); // Hide loader
+    }
     };
       
 
     const handleGoogleError = () => {
+        setIsLoading(false);
         toast.error("Google login failed. Please try again.");
     };
 
@@ -297,12 +301,7 @@ const UserLogin = () => {
                             )}
                         </button>
                     </form>
-                    <div className="login-footer">
-                        <p>
-                            Need help? <a href="/support">Contact our support team</a>
-                        </p>
-                        <p className="version">v2.4.1</p>
-                    </div>
+                   
                 </div>
             </div>
         </div>

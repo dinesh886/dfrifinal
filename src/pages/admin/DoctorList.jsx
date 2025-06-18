@@ -268,6 +268,7 @@ const DoctorList = () => {
                         showAddNew={false}
                         showDownloadSample={false}
                         showUploadExcel={false}
+                                showaddsubadmin={false}
                         showExport={false}
                         showDirectExport={true}
                         showDownloadSubadmin ={false}

@@ -179,7 +179,8 @@ const FootExam = () => {
             showUploadExcel={false}
             showExport={true}
             showDirectExport={false}
-                showDownloadSubadmin ={false}
+            showDownloadSubadmin ={false}
+            showaddsubadmin={false}
             onAddNew={handleAddNew}
             searchPlaceholder="Search participants..."
             exportFileName="participants"

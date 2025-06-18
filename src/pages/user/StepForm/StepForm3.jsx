@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './StepForm.css'; 
 import LeftFoot from '../../../assets/images/leftfoot.jpg'
 import RightFoot from '../../../assets/images/rightfoot.jpg'
@@ -14,11 +14,12 @@ const StepForm3 = ({formData, handleChange, errors}) => {
     console.log('Form submitted:', formData);
     // Handle form submission
   };
+  const fileInputRef = useRef(null);
 
   const [selectedTest, setSelectedTest] = useState(null);
 
   const monofilamentPoints = ['A', 'B', 'C'];
-  const tuningForkPoints = ['Medial Malleolus', 'Lateral Malleolus', 'Big Toe'];
+  const tuningForkPoints = [ 'Big Toe','Medial Malleolus', 'Lateral Malleolus'];
  
 
  
@@ -63,7 +64,26 @@ const StepForm3 = ({formData, handleChange, errors}) => {
       "section3"
     );
   };
-    
+  const handleRemoveFootImage = () => {
+    if (formData.section3.footImagePreview) {
+      URL.revokeObjectURL(formData.section3.footImagePreview);
+    }
+
+    handleChange({ target: { name: 'footImage', value: null } }, 'section3');
+    handleChange({ target: { name: 'footImagePreview', value: null } }, 'section3');
+
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.footImage;
+      return newErrors;
+    });
+
+    // Optionally clear file input if you're using a ref
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
   return (
     <div className="medical-add-container">
       {/* <div className="medical-add-header">
@@ -75,7 +95,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
         <div className="medical-add-section">
           <h2 className="medical-add-section-title">Presence of Symptoms</h2>
 
-          <div className="medical-add-row">
+          <div className="medical-add-row3">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Do you have burning or tingling sensation in feet or leg?</label>
               <div className="medical-add-radio-group">
@@ -104,8 +124,8 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.burningSensation && <span className="error-message">{errors.burningSensation}</span>}
               </div>
+                {errors.burningSensation && <span className="error-message">{errors.burningSensation}</span>}
             </div>
 
             <div className="medical-add-group">
@@ -135,12 +155,9 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.painWhileWalking && <span className="error-message">{errors.painWhileWalking}</span>}
               </div>
+                {errors.painWhileWalking && <span className="error-message">{errors.painWhileWalking}</span>}
             </div>
-          </div>
-
-          <div className="medical-add-row">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Are there changes in skin color or skin lesions?</label>
               <div className="medical-add-radio-group">
@@ -168,8 +185,8 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.skinChanges && <span className="error-message">{errors.skinChanges}</span>}
               </div>
+                {errors.skinChanges && <span className="error-message">{errors.skinChanges}</span>}
             </div>
 
             <div className="medical-add-group">
@@ -199,17 +216,19 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.sensationLoss && <span className="error-message">{errors.sensationLoss}</span>}
               </div>
+                {errors.sensationLoss && <span className="error-message">{errors.sensationLoss}</span>}
             </div>
           </div>
+
+         
         </div>
 
         {/* Dermatologic Exam Section */}
         <div className="medical-add-section">
           <h2 className="medical-add-section-title">Dermatologic Exam</h2>
 
-          <div className="medical-add-row">
+          <div className="medical-add-row3">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Does the patient have discolored, ingrown, or elongated nails?</label>
               <div className="medical-add-radio-group">
@@ -237,8 +256,8 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.nailProblems && <span className="error-message">{errors.nailProblems}</span>}
               </div>
+                {errors.nailProblems && <span className="error-message">{errors.nailProblems}</span>}
             </div>
 
             <div className="medical-add-group">
@@ -268,12 +287,10 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.fungalInfection && <span className="error-message">{errors.fungalInfection}</span>}
               </div>
+                {errors.fungalInfection && <span className="error-message">{errors.fungalInfection}</span>}
             </div>
-          </div>
 
-          <div className="medical-add-row">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Does the patient have discolored and/or hypertrophic skin lesions, calluses, or corns?</label>
               <div className="medical-add-radio-group">
@@ -301,12 +318,12 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.skinLesions && <span className="error-message">{errors.skinLesions}</span>}
               </div>
+                {errors.skinLesions && <span className="error-message">{errors.skinLesions}</span>}
             </div>
 
             <div className="medical-add-group">
-              <label className='medical-add-label required'>Does the patient have open wound or heel fissure?</label>
+              <label className='medical-add-label required'>Does the patient have open cracks or heel fissure?</label>
               <div className="medical-add-radio-group">
                 <label className='medical-add-radio-label'>
                   <input
@@ -332,13 +349,11 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.openWound && <span className="error-message">{errors.openWound}</span>}
               </div>
+                {errors.openWound && <span className="error-message">{errors.openWound}</span>}
             </div>
-          </div>
-
-          <div className="medical-add-row">
-            <div className="medical-add-group">
+            
+            {/* <div className="medical-add-group">
               <label className='required'>Is there any warmth/swelling/redness in the foot which is suggestive of cellulitis?</label>
               <div className="medical-add-radio-group">
                 <label className='medical-add-radio-label'>
@@ -365,10 +380,12 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.cellulitis && <span className="error-message">{errors.cellulitis}</span>}
               </div>
-            </div>
+                {errors.cellulitis && <span className="error-message">{errors.cellulitis}</span>}
+            </div> */}
           </div>
+
+         
         </div>
       
         {/* Neurologic Exam Section */}
@@ -556,11 +573,12 @@ const StepForm3 = ({formData, handleChange, errors}) => {
 
           {formData.section3.testType === 'tuningFork' && (
             <>
+            <label className="subtitle required">Is the patient responsive to 128 Hz Tuning Fork?</label>
               {/* <label className="point-label required">128Hz Tuning Fork Test Results</label> */}
 
               {/* Right Foot */}
               <div className="medical-add-row">
-                <div className="col-md-12">
+                <div className="col-md-6">
                   <h4 className="foot-title right-foot">Right Foot</h4>
                   <div className="tuning-fork-test-options">
                     {tuningForkPoints.map((point) => (
@@ -608,11 +626,8 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Left Foot */}
-              <div className="medical-add-row">
-                <div className="col-md-12">
+                <div className="col-md-6">
                   <h4 className="foot-title right-foot">Left Foot</h4>
                   <div className="tuning-fork-test-options">
                     {tuningForkPoints.map((point) => (
@@ -661,6 +676,11 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   </div>
                 </div>
               </div>
+
+              {/* Left Foot */}
+              <div className="medical-add-row">
+               
+              </div>
             </>
           )}
         </div>
@@ -672,37 +692,30 @@ const StepForm3 = ({formData, handleChange, errors}) => {
           <h2 className="medical-add-section-title">Musculoskeletal Exam</h2>
 
           <div className="medical-add-row">
-            <div className="medical-add-group">
-              <label className='medical-add-label required'>Does the patient have obvious deformities in the feet?</label>
-              <div className="medical-add-radio-group">
-                <label className='medical-add-radio-label'>
-                  <input
-                    type="radio"
-                    name="footDeformities"
-                    value="yes"
-                    checked={formData.section3.footDeformities === 'yes'}
-                   onChange={(e) => handleChange(e, 'section3')}
-                    className="medical-add-radio-button"
-                    required
-                  />
-                  <span className="medical-add-radio-button-label">Yes</span>
-                </label>
-                <label className='medical-add-radio-label'>
-                  <input
-                    type="radio"
-                    name="footDeformities"
-                    value="no"
-                    checked={formData.section3.footDeformities === 'no'}
-                   onChange={(e) => handleChange(e, 'section3')}
-                    className="medical-add-radio-button"
-                    required
-                  />
-                  <span className="medical-add-radio-button-label">No</span>
-                </label>
-                {errors.footDeformities && <span className="error-message">{errors.footDeformities}</span>}
-              </div>
-            </div>
-
+          <div className="medical-add-group">
+  <label className='medical-add-label required'>Does the patient have obvious deformities in the feet?</label>
+  <div className={`medical-add-radio-group ${errors.footDeformities ? 'medical-add-error-group' : ''}`}>
+    {[
+      { value: 'no', label: 'No' },
+      { value: 'minor', label: 'Minor' },
+      { value: 'major', label: 'Major' }
+    ].map((option) => (
+      <label className='medical-add-radio-label' key={`footDeformities-${option.value}`}>
+        <input
+          type="radio"
+          name="footDeformities"
+          value={option.value}
+          checked={formData.section3.footDeformities === option.value}
+          onChange={(e) => handleChange(e, 'section3')}
+          className="medical-add-radio-button"
+          required
+        />
+        <span className="medical-add-radio-button-label">{option.label}</span>
+      </label>
+    ))}
+  </div>
+  {errors.footDeformities && <span className="error-message">{errors.footDeformities}</span>}
+</div>
             {formData.section3.footDeformities === 'yes' && (
               <div className="medical-add-group">
                 <label className='required medical-add-radio-label'>If yes, for how long?</label>
@@ -727,7 +740,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
 
           <div className="medical-add-row">
             <div className="medical-add-group">
-              <label className='medical-add-label required'>Is the hair growth on the foot dorsum or lower limb decreased?</label>
+              <label className='medical-add-label required'>Is there hair loss on the lower limb ?</label>
               <div className="medical-add-radio-group">
                 <label className="medical-add-radio-label">
                   <input
@@ -753,8 +766,8 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.hairGrowth && <span className="error-message">{errors.hairGrowth}</span>}
               </div>
+                {errors.hairGrowth && <span className="error-message">{errors.hairGrowth}</span>}
             </div>
 
             <div className="medical-add-group">
@@ -784,12 +797,9 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">No</span>
                 </label>
-                {errors.pulsesPalpable && <span className="error-message">{errors.pulsesPalpable}</span>}
               </div>
+                {errors.pulsesPalpable && <span className="error-message">{errors.pulsesPalpable}</span>}
             </div>
-          </div>
-
-          <div className="medical-add-row">
             <div className="medical-add-group">
               <label className='medical-add-label required'>Is the temperature of the skin cold/warm/normal?</label>
                <div className="medical-add-radio-group">
@@ -829,14 +839,14 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">Normal</span>
                 </label>
-                {errors.skinTemperature && <span className="error-message">{errors.skinTemperature}</span>}
               </div>
+                {errors.skinTemperature && <span className="error-message">{errors.skinTemperature}</span>}
             </div>
           </div>
         </div>
      
         {/* Foot Image Upload */}
-        <div className="medical-add-section">
+        {/* <div className="medical-add-section">
           <h2 className="medical-add-section-title">Patient's Foot Image (Optional)</h2>
 
           <div className="medical-add-row">
@@ -853,13 +863,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                       <button
                         type="button"
                         className="medical-image-remove-btn"
-                        onClick={() => {
-                          setPreviewImage(null);
-                          handleChange(
-                            { target: { name: 'footImage', value: null } },
-                            'section3'
-                          );
-                        }}
+                        onClick={handleRemoveFootImage }
                       >
                         <svg viewBox="0 0 24 24" width="18" height="18">
                           <path
@@ -873,13 +877,15 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   </div>
                 ) : (
                   <label className="medical-upload-card">
-                    <input
-                      type="file"
-                      name="footImage"
+                      <input
+                        type="file"
+                        name="footImage"
                         accept="image/*,application/pdf"
-                      onChange={handleImageChange}
-                      className="medical-upload-input"
-                    />
+                        onChange={handleImageChange}
+                        className="medical-upload-input"
+                        ref={fileInputRef}
+                      />
+
                     <div className="medical-upload-content">
                       <div className="medical-upload-icon-wrapper">
                         <svg className="medical-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -904,7 +910,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </form>
     </div>
   );
