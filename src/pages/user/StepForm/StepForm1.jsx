@@ -577,7 +577,7 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
     </div>
   ) : (
     <>
-      <div className="medical-add-row">
+      <div className="medical-add-row3">
         <div className="medical-add-group">
           <label className="medical-add-label required">Name of the Facility</label>
           <input
