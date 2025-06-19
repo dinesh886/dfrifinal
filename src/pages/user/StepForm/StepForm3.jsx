@@ -448,9 +448,9 @@ const StepForm3 = ({formData, handleChange, errors}) => {
               <label className="subtitle required">Is the patient responsive to 10g monofilament?</label>
 
               {/* First Row - Left Foot */}
-              <div className="medical-add-row align-items-center medical-add-row">
-                <div className="col-md-6">
-                  <div className="foot-image-container text-center">
+              <div className="medical-add-row align-items-center ">
+                <div className="">
+                  <div className="foot-image-container medical-add-group text-center">
                     <label className="subtitle required right-foot">Right Foot</label>
                     <img
                       src={LeftFoot}
@@ -459,7 +459,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-6">
+                <div className="medical-add-group">
                   <div className="monofilament-test-options">
                     {monofilamentPoints.map((point) => (
                       <div className="monofilament-point" key={`left-${point}`}>
@@ -511,7 +511,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
               {/* Second Row - Right Foot */}
               <div className="row align-items-center medical-add-row">
                 <div className="col-md-6">
-                  <div className="foot-image-container text-center">
+                  <div className="foot-image-container text-center medical-add-group">
                     <label className="subtitle required right-foot">Left Foot</label>
                     <img
                       src={RightFoot}
@@ -520,7 +520,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-6 medical-add-group">
                   <div className="monofilament-test-options">
                     {monofilamentPoints.map((point) => (
                       <div className="monofilament-point" key={`right-${point}`}>
@@ -578,7 +578,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
 
               {/* Right Foot */}
               <div className="medical-add-row">
-                <div className="col-md-6">
+                <div className="col-md-6 medical-add-group">
                   <h4 className="foot-title right-foot">Right Foot</h4>
                   <div className="tuning-fork-test-options">
                     {tuningForkPoints.map((point) => (
@@ -627,7 +627,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   </div>
                 </div>
 
-                <div className="col-md-6">
+                <div className="col-md-6 medical-add-group">
                   <h4 className="foot-title right-foot">Left Foot</h4>
                   <div className="tuning-fork-test-options">
                     {tuningForkPoints.map((point) => (

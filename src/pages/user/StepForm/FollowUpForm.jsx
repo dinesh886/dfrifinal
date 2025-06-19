@@ -258,7 +258,7 @@ const FollowUpForm = () => {
           <div className="medical-add-section step-form-4">
             <h2 className="medical-add-section-title">Final Treatment Outcomes (after 6 months)</h2>
 
-            <div className="medical-add-row">
+            <div className="medical-add-row3">
               <div className="col-md-4 medical-add-group">
                 <label className="medical-add-label required">Wound debridement performed?</label>
                 <div className={`medical-add-radio-group ${errors.woundDebridement ? "error" : ""}`}>
@@ -316,12 +316,88 @@ const FollowUpForm = () => {
                 </div>
                 {errors.amputation && <span className="error-message">This field is required</span>}
               </div>
+              <div className="col-md-4 medical-add-group">
+                <label className="medical-add-label required">Has the wound healed?</label>
+                <div className={`medical-add-radio-group ${errors.woundHealed ? "error" : ""}`}>
+                  <label className="medical-add-radio-label">
+                    <input
+                      type="radio"
+                      name="woundHealed"
+                      value="yes"
+                      checked={formData.section4.woundHealed === "yes"}
+                      onChange={(e) => handleChange(e, "section4")}
+                      className="medical-add-radio-button"
+                    />
+                    <span className="medical-add-radio-button-label">Yes</span>
+                  </label>
+                  <label className="medical-add-radio-label">
+                    <input
+                      type="radio"
+                      name="woundHealed"
+                      value="no"
+                      checked={formData.section4.woundHealed === "no"}
+                      onChange={(e) => handleChange(e, "section4")}
+                      className="medical-add-radio-button"
+                    />
+                    <span className="medical-add-radio-button-label">No</span>
+                  </label>
+                </div>
+                {errors.woundHealed && <span className="error-message">This field is required</span>}
 
-
+                {formData.section4.woundHealed === "yes" && (
+                  <div className="medical-add-group">
+                    <label className="required" style={{ minWidth: "350px" }}>
+                      Time of Healing (days)
+                    </label>
+                    <input
+                      type="number"
+                      name="healingTime"
+                      value={formData.section4.healingTime}
+                      onChange={(e) => handleChange(e, "section4")}
+                      min="1"
+                      className={`medical-add-input ${errors.healingTime ? "error" : ""}`}
+                      style={{ maxWidth: "250px" }}
+                    />
+                    {errors.healingTime && <span className="error-message">This field is required</span>}
+                  </div>
+                )}
+              </div>
+            
+              <div className="col-md-6 medical-add-group">
+                <label className="required" style={{ minWidth: "350px" }}>
+                  Presence of recurrent ulcer?
+                </label>
+                <div className={`medical-add-radio-group ${errors.recurrentUlcer ? "error" : ""}`}>
+                  <label className="medical-add-radio-label">
+                    <input
+                      type="radio"
+                      name="recurrentUlcer"
+                      value="yes"
+                      checked={formData.section4.recurrentUlcer === "yes"}
+                      onChange={(e) => handleChange(e, "section4")}
+                      className="medical-add-radio-button"
+                    />
+                    <span className="medical-add-radio-button-label">Yes</span>
+                  </label>
+                  <label className="medical-add-radio-label">
+                    <input
+                      type="radio"
+                      name="recurrentUlcer"
+                      value="no"
+                      checked={formData.section4.recurrentUlcer === "no"}
+                      onChange={(e) => handleChange(e, "section4")}
+                      className="medical-add-radio-button"
+                    />
+                    <span className="medical-add-radio-button-label">No</span>
+                  </label>
+                </div>
+                {errors.recurrentUlcer && <span className="error-message">This field is required</span>}
+              </div>
+              
             </div>
 
             {formData.section4.amputation === "yes" && (
-              <div className="medical-add-row mt-3">
+              <div className="medical-add-row3 ">
                 <div className="col-md-6 medical-add-group">
                   <label className="medical-add-label required">Amputation type</label>
                   <div className={`medical-add-radio-group ${errors.amputationType ? "error" : ""}`}>
@@ -381,114 +457,42 @@ const FollowUpForm = () => {
                 </div>
               </div>
             )}
-            <div className="col-md-4 medical-add-group">
-              <label className="medical-add-label required">Has the wound healed?</label>
-              <div className={`medical-add-radio-group ${errors.woundHealed ? "error" : ""}`}>
+           
+            <div className="col-md-6 medical-add-group">
+              <label className="required" style={{ minWidth: "350px" }}>
+                Survival status
+              </label>
+              <div className={`medical-add-radio-group ${errors.survivalStatus ? "error" : ""}`}>
                 <label className="medical-add-radio-label">
                   <input
                     type="radio"
-                    name="woundHealed"
-                    value="yes"
-                    checked={formData.section4.woundHealed === "yes"}
+                    name="survivalStatus"
+                    value="alive"
+                    checked={formData.section4.survivalStatus === "alive"}
                     onChange={(e) => handleChange(e, "section4")}
                     className="medical-add-radio-button"
                   />
-                  <span className="medical-add-radio-button-label">Yes</span>
+                  <span className="medical-add-radio-button-label">Alive</span>
                 </label>
                 <label className="medical-add-radio-label">
                   <input
                     type="radio"
-                    name="woundHealed"
-                    value="no"
-                    checked={formData.section4.woundHealed === "no"}
+                    name="survivalStatus"
+                    value="death"
+                    checked={formData.section4.survivalStatus === "death"}
                     onChange={(e) => handleChange(e, "section4")}
                     className="medical-add-radio-button"
                   />
-                  <span className="medical-add-radio-button-label">No</span>
+                  <span className="medical-add-radio-button-label">Death</span>
                 </label>
               </div>
-              {errors.woundHealed && <span className="error-message">This field is required</span>}
+              {errors.survivalStatus && <span className="error-message">This field is required</span>}
             </div>
-            {formData.section4.woundHealed === "yes" && (
-              <div className="medical-add-group">
-                <label className="required" style={{ minWidth: "350px" }}>
-                  Time of Healing (days)
-                </label>
-                <input
-                  type="number"
-                  name="healingTime"
-                  value={formData.section4.healingTime}
-                  onChange={(e) => handleChange(e, "section4")}
-                  min="1"
-                  className={`medical-add-input ${errors.healingTime ? "error" : ""}`}
-                  style={{ maxWidth: "250px" }}
-                />
-                {errors.healingTime && <span className="error-message">This field is required</span>}
-              </div>
-            )}
 
             <div className="medical-add-row">
-              <div className="col-md-6 medical-add-group">
-                <label className="required" style={{ minWidth: "350px" }}>
-                  Presence of recurrent ulcer?
-                </label>
-                <div className={`medical-add-radio-group ${errors.recurrentUlcer ? "error" : ""}`}>
-                  <label className="medical-add-radio-label">
-                    <input
-                      type="radio"
-                      name="recurrentUlcer"
-                      value="yes"
-                      checked={formData.section4.recurrentUlcer === "yes"}
-                      onChange={(e) => handleChange(e, "section4")}
-                      className="medical-add-radio-button"
-                    />
-                    <span className="medical-add-radio-button-label">Yes</span>
-                  </label>
-                  <label className="medical-add-radio-label">
-                    <input
-                      type="radio"
-                      name="recurrentUlcer"
-                      value="no"
-                      checked={formData.section4.recurrentUlcer === "no"}
-                      onChange={(e) => handleChange(e, "section4")}
-                      className="medical-add-radio-button"
-                    />
-                    <span className="medical-add-radio-button-label">No</span>
-                  </label>
-                </div>
-                {errors.recurrentUlcer && <span className="error-message">This field is required</span>}
-              </div>
+              
 
-              <div className="col-md-6 medical-add-group">
-                <label className="required" style={{ minWidth: "350px" }}>
-                  Survival status
-                </label>
-                <div className={`medical-add-radio-group ${errors.survivalStatus ? "error" : ""}`}>
-                  <label className="medical-add-radio-label">
-                    <input
-                      type="radio"
-                      name="survivalStatus"
-                      value="alive"
-                      checked={formData.section4.survivalStatus === "alive"}
-                      onChange={(e) => handleChange(e, "section4")}
-                      className="medical-add-radio-button"
-                    />
-                    <span className="medical-add-radio-button-label">Alive</span>
-                  </label>
-                  <label className="medical-add-radio-label">
-                    <input
-                      type="radio"
-                      name="survivalStatus"
-                      value="death"
-                      checked={formData.section4.survivalStatus === "death"}
-                      onChange={(e) => handleChange(e, "section4")}
-                      className="medical-add-radio-button"
-                    />
-                    <span className="medical-add-radio-button-label">Death</span>
-                  </label>
-                </div>
-                {errors.survivalStatus && <span className="error-message">This field is required</span>}
-              </div>
+             
             </div>
 
             {formData.section4.survivalStatus === "death" && (

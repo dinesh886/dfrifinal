@@ -299,7 +299,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
           <div className="medical-add-row">
             {/* Leg Dropdown - independent selection */}
-            <div className="medical-add-group">
+            <div className="medical-add-group ">
               <label className="medical-add-label required">Leg</label>
               <select
                 name="leg"
@@ -318,7 +318,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
             </div>
 
             {/* Foot Dropdown - controls which foot sections are shown */}
-            <div className="form-group ">
+            <div className="medical-add-group ">
               <label className="medical-add-label required">Foot</label>
               <select
                 name="foot"
@@ -338,8 +338,8 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
 
 
-            <div className="medical-add-group">
-              <label className="medical-add-label required">Image of wound on the date of assessment (if available)</label>
+            <div className="medical-add-group ">
+              <label className="medical-add-label required">Image of wound on the date of assessment <br></br>(if available)</label>
 
               <div className={`medical-add-radio-group ${errors.woundReferenceConsent ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -491,7 +491,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
             </div>
 
-            <div className=" medical-add-group">
+            <div className=" medical-add-group ">
               <label className="medical-add-label required">Ulcer/wound size (cm²)</label>
               <input
                 type="number"
@@ -583,7 +583,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
                 ))}
               </div>
             )}
-            <div className=" medical-add-group">
+            <div className=" medical-add-group ">
               <label className="medical-add-label required">Duration of wound (days)</label>
               <input
                 type="number"
@@ -610,7 +610,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
           <h2 className="medical-add-section-title">Infection Details:</h2>
           <div className="medical-add-row3">
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Infection</label>
               <div className={`medical-add-radio-group ${errors.infection ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -633,7 +633,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
 
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Local swelling or induration</label>
               <div className={`medical-add-radio-group ${errors.swelling ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -656,7 +656,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
 
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Erythema around the ulcer</label>
               <div className={`medical-add-radio-group ${errors.erythema ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -679,7 +679,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
 
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Local tenderness or pain</label>
               <div className={`medical-add-radio-group ${errors.tenderness ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -700,7 +700,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
               {errors.tenderness && <span className="error-message">{errors.tenderness}</span>}
             </div>
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Is there any warmth/swelling/redness in the foot which is suggestive of cellulitis</label>
               <div className={`medical-add-radio-group ${errors.warmth ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -721,7 +721,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
               {errors.warmth && <span className="error-message">{errors.warmth}</span>}
             </div>
 
-            <div className=" medical-add-group">
+            <div className=" medical-add-group medical-add-group2">
               <label className="medical-add-label required">Purulent discharge (thick, opaque to white or sanguineous secretion)</label>
               <div className={`medical-add-radio-group ${errors.purulentDischarge ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((option) => (
@@ -744,7 +744,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
               )}
             </div>
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Culture report (if available)</label>
               <div className={`medical-add-radio-group ${errors.cultureReportAvailable ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -845,7 +845,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
             </div>
             {/* Bone Exposure */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Probe to Bone</label>
               <div className={`medical-add-radio-group ${errors.probetobone ? 'medical-add-error-group' : ''}`}>
                 {[
@@ -998,13 +998,14 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
           <div className="medical-add-row3">
             {/* Osteomyelitis */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Osteomyelitis in x-ray foot</label>
               <div className={`medical-add-radio-group ${errors.osteomyelitis ? 'medical-add-error-group' : ''}`}>
                 {[
                   { value: 'yes', label: 'Yes' },
                   { value: 'no', label: 'No' },
-                  { value: 'xray_not_available', label: 'X-ray not available' }
+                  { value: 'xray_not_available', label: 'X-ray not available' }// X-ray not available
+                 
                 ].map((option) => (
                   <label className="medical-add-radio-label" key={`osteomyelitis-${option.value}`}>
                     <input
@@ -1027,7 +1028,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
             {/* Sepsis */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Fever or other signs of sepsis</label>
               <div className={`medical-add-radio-group ${errors.sepsis ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -1051,7 +1052,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
             {/* Arterial Issues */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">
                 Presence of arterial stenosis/occlusions (documented by DSA/arterial color doppler/ABI/MRI, if needed)
               </label>
@@ -1193,7 +1194,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
             {/* Necrosis */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2">
               <label className="medical-add-label required">Necrosis of soft tissue</label>
               <div className={`medical-add-radio-group ${errors.necrosis ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -1301,7 +1302,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
 
             {/* Gangrene */}
 
-            <div className="medical-add-group">
+            <div className="medical-add-group medical-add-group2" >
               <label className="medical-add-label required">Gangrene</label>
               <div className={`medical-add-radio-group ${errors.gangrene ? 'medical-add-error-group' : ''}`}>
                 {['yes', 'no'].map((val) => (
@@ -1390,7 +1391,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
           <h2 className="medical-add-section-title">Treatment Details</h2>
 
           <div className="medical-add-row">
-            <div className="col-md-4 medical-add-group">
+            <div className="col-md-4 medical-add-group ">
               <label className="medical-add-label required">Antibiotics given</label>
               <div className={`medical-add-radio-group ${errors.antibioticsGiven ? 'medical-add-error-group' : ''}`}>
                 {['no', 'oral', 'iv'].map((option) => (
@@ -1413,7 +1414,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
               {errors.antibioticsGiven && <span className="error-message">{errors.antibioticsGiven}</span>}
             </div>
 
-            <div className="col-md-4 medical-add-group">
+            <div className="col-md-4 medical-add-group ">
               <label className="medical-add-label required">Surgical Procedure</label>
               <select
                 name="surgicalProcedure"
@@ -1454,7 +1455,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
             </div>
 
 
-            <div className="col-md-4 medical-add-group">
+            <div className="col-md-4 medical-add-group ">
               <label className="medical-add-label">Amputation</label>
               <div className={`medical-add-radio-group ${errors.amputation ? 'medical-add-error-group' : ''}`}>
                 {['no', 'minor', 'major'].map((option) => (
@@ -1475,31 +1476,32 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
                 ))}
               </div>
               {errors.amputation && <span className="error-message">{errors.amputation}</span>}
+              {formData.section2.amputation === 'major' && (
+                <div className="medical-add-group">
+                  <label className="medical-add-label required">Major amputation level</label>
+                  <div className={`medical-add-radio-group ${errors.amputationLevel ? 'medical-add-error-group' : ''}`}>
+                    {['Below knee', 'Above knee'].map((option) => (
+                      <label key={option} className="medical-add-radio-label">
+                        <input
+                          type="radio"
+                          name="amputationLevel"
+                          value={option}
+                          checked={formData.section2.amputationLevel === option}
+                          onChange={(e) => handleChange(e, 'section2')}
+                          className="medical-add-radio-button"
+                          required
+                        />
+                        <span className="medical-add-radio-button-label">{option}</span>
+                      </label>
+                    ))}
+                    {errors.amputationLevel && <span className="error-message">{errors.amputationLevel}</span>}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {formData.section2.amputation === 'major' && (
-              <div className="medical-add-group">
-                <label className="medical-add-label required">Major amputation level</label>
-                <div className={`medical-add-radio-group ${errors.amputationLevel ? 'medical-add-error-group' : ''}`}>
-                  {['Below knee', 'Above knee'].map((option) => (
-                    <label key={option} className="medical-add-radio-label">
-                      <input
-                        type="radio"
-                        name="amputationLevel"
-                        value={option}
-                        checked={formData.section2.amputationLevel === option}
-                        onChange={(e) => handleChange(e, 'section2')}
-                        className="medical-add-radio-button"
-                        required
-                      />
-                      <span className="medical-add-radio-button-label">{option}</span>
-                    </label>
-                  ))}
-                  {errors.amputationLevel && <span className="error-message">{errors.amputationLevel}</span>}
-                </div>
-              </div>
-            )}
-            <div className="col-md-4 medical-add-group">
+           
+            <div className="col-md-4 medical-add-group ">
               <label className="medical-add-label required">Which dressing material was used</label>
               <input
                 type="text"
@@ -1511,7 +1513,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
               />
               {errors.dressingMaterial && <span className="error-message">{errors.dressingMaterial}</span>}
             </div>
-            <div className="col-md-4 form-group">
+            <div className="col-md-4 medical-add-group ">
               <label className="medical-add-label required">Offloading device</label>
               <input
                 type="text"
@@ -1525,7 +1527,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
             </div>
 
             <div className="col-md-4">
-              <div className="medical-add-group">
+              <div className="medical-add-group ">
                 <label className="medical-add-label required">Other Treatment details, if any</label>
                 <div className={`medical-add-radio-group ${errors.socGiven ? 'medical-add-error-group' : ''}`}>
                   {['yes', 'no'].map((val) => (
