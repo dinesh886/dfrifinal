@@ -10,6 +10,8 @@ import { FilePenLine, CalendarClock, Lock } from "lucide-react"
 import { toast } from "react-toastify"
 import UploadPopup from "../../components/UploadPopup"
 import { apiGet } from "../../services/api-helper"
+import MessageBanner from "../../components/MessageBanner/MessageBanner"
+
 
 const UserDashboard = () => {
     const location = useLocation()
@@ -417,7 +419,7 @@ const UserDashboard = () => {
 
             console.log("Mapped Records:", mappedRecords)
             setDoctorData(mappedRecords)
-            localStorage.setItem("patientRecords", JSON.stringify(mappedRecords))
+            // localStorage.setItem("patientRecords", JSON.stringify(mappedRecords))
         } catch (error) {
             console.error("Error fetching patient records:", error)
             toast.error("Failed to load patient records: " + error.message)
@@ -677,6 +679,9 @@ const UserDashboard = () => {
     return (
         <UserLayout>
             <div className="doctor-dashboard">
+                <MessageBanner message=" Your Previous data is safe. We're fixing a backend issue, and it will reappear soon. You can continue submitting." />
+
+
                 <div className="dashboard-controls"></div>
                 <DataTable
                     data={doctorData}

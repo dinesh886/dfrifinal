@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 export const handleExport = async (filters, exportFileName, setShowExportModal) => {
   try {
     // 1. Fetch all patients
-    const response = await apiGet("/patient");
+    const response = await apiGet("/download");
     const allPatients = Array.isArray(response.patients) ? response.patients : [];
 
     console.log("All patients from API:", allPatients);

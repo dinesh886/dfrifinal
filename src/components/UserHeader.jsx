@@ -4,6 +4,7 @@ import { FaUserCircle, FaChevronDown, FaSignOutAlt, FaCog } from 'react-icons/fa
 import { logout } from '../features/auth/authSlice';
 import './UserHeader.css';
 import logo from '../assets/images/logo.png'
+import logo2 from '../assets/images/RSSDI_Trans.png'
 import { Link } from 'react-router-dom';
 const UserHeader = () => {
     const dropdownRef = useRef(null);
@@ -47,9 +48,14 @@ const UserHeader = () => {
         <header className="user-dashboard-header">
             <div className="user-header-content">
                 <div className="user-logo-container">
-                    <div className="logo-placeholder">
+                    <div className="user-logo-placeholder">
                         <Link to="/user/rssdi-save-the-feet-2.0">
                             <img src={logo} alt="Logo" />
+                         
+                        </Link>
+                        <Link to="/user/rssdi-save-the-feet-2.0">
+                           
+                            <img src={logo2} alt="Logo" />
                         </Link>
 
                         

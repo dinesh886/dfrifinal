@@ -23,6 +23,7 @@ import {
     Download
 } from "lucide-react";
 import logo from '../assets/images/logo.png'
+import logo2 from '../assets/images/RSSDI_Trans.png'
 import './AdminSidebar.css';
 
 const AdminSidebar = ({ isOpen, toggleSidebar }) => {
@@ -114,7 +115,10 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
                                 <div className="logo-placeholder">
                                     <img src={logo} alt="" srcSet="" />
                                 </div>
-                                {isOpen && <h3 className="panel-title">DFRI</h3>}
+                                <div className="logo-placeholder">
+                                    <img src={logo2} alt="" srcSet="" />
+                                </div>
+                                {/* {isOpen && <h3 className="panel-title">DFRI</h3>} */}
                             </div>
                         </div>
                     )}

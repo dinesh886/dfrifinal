@@ -80,40 +80,36 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
         }
     }, [formData.section1.consentFormPreview])
     const handleDownloadConsentForm = () => {
-        try {
-            const pdfPath = '/dfrifinal/Consent_form_registry.pdf'
+        const pdfPath = '/dfrifinal/Consent_form_registry.pdf'; // Use full URL
 
-            fetch(pdfPath)
-                .then((res) => {
-                    if (res.status === 404) {
-                        throw new Error('PDF file not found')
-                    }
+        fetch(pdfPath)
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error('PDF file not found');
+                }
 
-                    const link = document.createElement('a')
-                    link.href = pdfPath
-                    link.download = 'Diabetes_Foot_Ulcer_Consent_Form.pdf'
-                    document.body.appendChild(link)
-                    link.click()
-                    document.body.removeChild(link)
+                const link = document.createElement('a');
+                link.href = `${pdfPath}?v=${Date.now()}`; // Optional: cache busting
+                link.download = 'Diabetes_Foot_Ulcer_Consent_Form.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                    handleChange(
-                        { target: { name: "consentDownloaded", value: true } },
-                        "section1"
-                    )
-                })
-                .catch((err) => {
-                    console.error("File not found:", err)
-                    setErrors((prev) => ({
-                        ...prev,
-                        consentForm: 'Consent form template not found',
-                    }))
-                    toast.error("Failed to download consent form. File not found.")
-                })
-        } catch (error) {
-            console.error("Error downloading consent form:", error)
-            toast.error("Something went wrong while downloading the form. Please try again later.")
-        }
-    }
+                handleChange(
+                    { target: { name: "consentDownloaded", value: true } },
+                    "section1"
+                );
+            })
+            .catch((err) => {
+                console.error("File not found:", err);
+                setErrors((prev) => ({
+                    ...prev,
+                    consentForm: 'Consent form template not found',
+                }));
+                toast.error("Failed to download consent form. File not found.");
+            });
+    };
+      
 
     const handleRemoveConsent = () => {
         if (formData.section1.consentFormPreview && formData.section1.consentFormPreview.startsWith('blob:')) {

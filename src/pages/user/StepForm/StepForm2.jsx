@@ -778,7 +778,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
                         ) : (
                           <img
                             src={formData.section2.cultureReportPreview}
-                            alt="Culture Report Preview"
+                            alt=" Report Preview"
                             className="medical-image-preview"
                           />
                         )}
@@ -1095,7 +1095,7 @@ const StepForm2 = ({ formData, handleChange, errors, setErrors }) => {
                         ) : (
                           <img
                             src={formData.section2.arterialReportPreview}
-                            alt="Culture Report Preview"
+                            alt=" Report Preview"
                             className="medical-image-preview"
                           />
                         )}

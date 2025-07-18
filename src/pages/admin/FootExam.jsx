@@ -112,19 +112,19 @@ const FootExam = () => {
       ),
     },
     // Add this to your columns array:
-    // {
-    //   key: "actions",
-    //   header: "Actions",
-    //   sortable: false,
-    //   render: (_, record) => (
-    //     <Link
-    //       to={`/admin/patient/${record.patientId || record.id}`}
-    //       className="view-details-link"
-    //     >
-    //       <ScanEye className="view-details "/> 
-    //     </Link>
-    //   ),
-    // }
+    {
+      key: "actions",
+      header: "Actions",
+      sortable: false,
+      render: (_, record) => (
+        <Link
+          to={`/admin/patient/${record.patientId || record.id}`}
+          className="view-details-link"
+        >
+          <ScanEye className="view-details "/> 
+        </Link>
+      ),
+    }
     
   ];
 

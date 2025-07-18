@@ -147,17 +147,23 @@ const DataTable = ({
             toast.error("You don't have access to download patient data. Please contact admin.");
             return;
         }
-        setIsExporting(true);
+
+        // Start loading
+        setLoadingStates((prev) => ({ ...prev, export: true }));
+
         try {
+            // Call export utility
             await handleExport(filters, "PatientDataExport", setShowExportModal);
             toast.success("Patient data exported successfully!");
         } catch (error) {
             console.error("Export failed:", error);
             toast.error("Failed to export patient data");
         } finally {
-            setIsExporting(false);
+            // Stop loading
+            setLoadingStates((prev) => ({ ...prev, export: false }));
         }
     };
+
     const [uploadedData, setUploadedData] = useState(() => {
         if (typeof window !== 'undefined') {
             const savedData = localStorage.getItem(`${exportFileName}_uploadedData`);
@@ -364,7 +370,27 @@ const DataTable = ({
 
         return row[column.key];
     };
+    const handleDownloadSamplefile = () => {
+        setLoadingStates(prev => ({ ...prev, downloadSample: true }));
 
+        try {
+            // Create and click the anchor tag
+            const link = document.createElement('a');
+            link.href = '/dfrifinal/patient_details_sample.xlsx'; // This points to your public/sample.xlsx
+            link.setAttribute('download', 'patient_details_sample.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Success message
+            toast.success("Sample file with all fields downloaded successfully!");
+        } catch (error) {
+            console.error("Error generating sample file:", error);
+            toast.error("Failed to download sample file");
+        } finally {
+            setLoadingStates(prev => ({ ...prev, downloadSample: false }));
+        }
+      };
     const handleDownloadSample = () => {
         setLoadingStates(prev => ({ ...prev, downloadSample: true }));
 
@@ -978,7 +1004,7 @@ const DataTable = ({
                     {showDownloadSample && (
                         <a
                             className="sample-excel-download action-btn"
-                            onClick={() => handleAction('downloadSample', handleDownloadSample)}
+                            onClick={() => handleAction('downloadSample', handleDownloadSamplefile)}
                             disabled={loadingStates.downloadSample}
                         >
                             {loadingStates.downloadSample ? (
@@ -1078,11 +1104,11 @@ const DataTable = ({
             </div>
 
             {isTableEmpty ? (
-                <div class="empty-state-container">
-                    <div class="empty-state-content">
-                        <div class="empty-state-icon">
+                <div className ="empty-state-container">
+                    <div className="empty-state-content">
+                        <div className="empty-state-icon">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9 17V15M12 17V13M15 17V11M5 21H19C20.1046 21 21 20.1046 21 19V9C21 7.89543 20.1046 7 19 7H15.8284C15.2979 7 14.7893 6.78929 14.4142 6.41421L12.5858 4.58579C12.2107 4.21071 11.7021 4 11.1716 4H5C3.89543 4 3 4.89543 3 6V19C3 20.1046 3.89543 21 5 21Z" stroke="#1b4332" stroke-width="1.5" stroke-linecap="round" />
+                                <path d="M9 17V15M12 17V13M15 17V11M5 21H19C20.1046 21 21 20.1046 21 19V9C21 7.89543 20.1046 7 19 7H15.8284C15.2979 7 14.7893 6.78929 14.4142 6.41421L12.5858 4.58579C12.2107 4.21071 11.7021 4 11.1716 4H5C3.89543 4 3 4.89543 3 6V19C3 20.1046 3.89543 21 5 21Z" stroke="#1b4332" strokeWidth="1.5" strokeLinecap="round" />
                             </svg>
                         </div>
                         <h3>No Records Found</h3>
@@ -1156,9 +1182,15 @@ const DataTable = ({
                                     disabled={currentPage === 1}
                                     aria-label="Previous page"
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                                    </svg>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M15 19l-7-7 7-7"
+                                            />
+                                        </svg>
+
                                 </button>
 
                                 <div className="page-numbers">

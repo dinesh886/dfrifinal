@@ -69,26 +69,25 @@ export const calculateFollowUpDate = (dateString) => {
     return followUpDate.toISOString();
 };
 
-// utils/dateUtils.js
-//24Hourstimelogic
+// 5-day time logic
 export const is24HoursPassed = (dateString, currentTime = new Date()) => {
     if (!dateString) return true;
     const submissionDate = new Date(dateString);
     const diffMs = currentTime - submissionDate;
-    return diffMs >= 24 * 60 * 60 * 1000;
+    return diffMs >= 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
 };
-// utils/dateUtils.js
+
 export const calculateRemainingTime = (submissionDate, currentTime) => {
     const submittedAt = new Date(submissionDate).getTime();
     const now = currentTime ? new Date(currentTime).getTime() : Date.now();
-  
-    const diffMs = 24 * 60 * 60 * 1000 - (now - submittedAt); // 24 hours in ms
-    if (diffMs <= 0) return "0h 00m 00s";
-  
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+
+    const diffMs = 5 * 24 * 60 * 60 * 1000 - (now - submittedAt); // 5 days in ms
+    if (diffMs <= 0) return "0d 00h 00m";
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-  
-    return `${hours}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
-  };
-  
+
+    return `${days}d ${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m`;
+};
+

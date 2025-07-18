@@ -16,6 +16,7 @@ import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { apiGet } from "../../../services/api-helper"
 import { IMAGE_BASE_URL } from "../../../config/api"
+import { API_BASE_URL } from "../../../config/api"
 
 const StepForm = () => {
   const location = useLocation()
@@ -1072,8 +1073,8 @@ const StepForm = () => {
       const formDataToSubmit = prepareFormDataForAPI(1)
       const url =
         isEditMode && patientId
-          ? `https://webstrategy.co.in/rssdi/api/patient/updatestep1/${patientId}`
-          : `https://webstrategy.co.in/rssdi/api/patient/step1`
+          ? `${API_BASE_URL}/patient/updatestep1/${patientId}`
+          : `${API_BASE_URL}/patient/step1`
       const response = await fetch(url, {
         method: "POST",
         body: formDataToSubmit,
@@ -1118,7 +1119,7 @@ const StepForm = () => {
       console.log('Step 2 formData:', formData.section2);
 
       const formDataToSubmit = prepareFormDataForAPI(2);
-      const response = await fetch(`https://webstrategy.co.in/rssdi/api/patient/step2/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/patient/step2/${id}`, {
         method: 'POST',
         body: formDataToSubmit,
       });
@@ -1164,10 +1165,11 @@ const StepForm = () => {
       for (let [key, value] of formDataToSubmit.entries()) {
         console.log(`${key}:`, value);
       }
-      const response = await fetch(`https://webstrategy.co.in/rssdi/api/patient/step3/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/patient/step3/${id}`, {
         method: "POST",
         body: formDataToSubmit,
-      })
+      });
+      
 
       const data = await response.json()
       console.log("Step 3 API Response:", data)

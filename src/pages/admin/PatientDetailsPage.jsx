@@ -1,14 +1,14 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { apiGet } from "../../services/api-helper"
 import { toast } from "react-toastify"
 import AdminLayout from "../../layouts/AdminLayout"
-import '../admin/PatientDetailsPage.css'
-import { IMAGE_BASE_URL } from "../../config/api";
-import { FaDownload } from "react-icons/fa"; // or any download icon
-import { User, Activity, Stethoscope,BookCheck  } from 'lucide-react';
+import "./PatientDetailsPage.css"
+import { IMAGE_BASE_URL } from "../../config/api"
+import { FaDownload, FaUser, FaCalendar, FaMapMarkerAlt } from "react-icons/fa"
+import * as XLSX from "xlsx"
+
 const PatientDetailsPage = () => {
     const { patientId } = useParams()
     const navigate = useNavigate()
@@ -17,16 +17,21 @@ const PatientDetailsPage = () => {
     const [error, setError] = useState(null)
     const [activeTab, setActiveTab] = useState("basic")
 
-    // Initial form state structure from StepForm.jsx
+    // Initial form state structure
     const initialFormState = {
         section1: {
             patient_name: "",
-            consentForm: null,
-            consentFormPreview: null,
-            consentDownloaded: false,
-            consentUploaded: false,
-            consentVerified: false,
+            consentForm: "",
+            consentFormPreview: "",
+            consentDownloaded: "",
+            consentUploaded: "no",
+            consentVerified: "no",
             locality: "",
+            villageOrCity: "",
+            state: "",
+            pincode: "",
+            treatmentType: "",
+            facilityEmail: "",
             age: "",
             gender: "",
             facilityName: "",
@@ -35,7 +40,7 @@ const PatientDetailsPage = () => {
             education: "",
             occupation: "",
             maritalStatus: "",
-            monthlyIncome: "",
+            sesRating: null,
             familyMembers: "",
             dependents: "",
             diabetesType: "",
@@ -53,7 +58,6 @@ const PatientDetailsPage = () => {
             retinal: "",
             cardiovascular: "",
             cerebrovascular: "",
-            // imbIschemia: "",
             hypertension: "",
             heartFailure: "",
             limbIschemia: "",
@@ -80,16 +84,16 @@ const PatientDetailsPage = () => {
         },
         section2: {
             firstAssessment: "",
-            attendedBefore: "",
-            facilityVisited: "",
-            intervalToAssessment: "",
-            referredBy: "",
-            treatedDays: "",
-            referredInDays: "",
-            visitedInDays: "",
             necrosis: "",
-            necrosisPhoto: null,
-            necrosisPhotoPreview: "",
+            leg: "",
+            foot: "",
+            rightFoot_forefoot: "",
+            rightFoot_hindfoot: "",
+            rightFoot_midfoot: "",
+            leftFoot_forefoot: "",
+            leftFoot_hindfoot: "",
+            leftFoot_midfoot: "",
+            purulentDischarge: "",
             gangrene: "",
             gangreneType: "",
             probetobone: "",
@@ -101,27 +105,24 @@ const PatientDetailsPage = () => {
             erythema: "",
             tenderness: "",
             warmth: "",
-         
             cultureReport: "",
+            cultureReportPreview: "",
             woundSize: "",
-            woundLocation: "",
             woundDuration: "",
-            woundClassification: "",
             socGiven: "",
             socDetails: "",
             dressingMaterial: "",
             offloadingDevice: "",
-            hospitalization: "",
             amputation: "",
             amputationType: "",
             amputationLevel: "",
-            debridementWithAmputation: "",
-           
-            woundReferenceFile: null,
+            antibioticsGiven: "",
+            woundReferenceFile: "",
+            woundReferenceFilePreview: "",
             woundReferenceConsent: "",
-            woundReferenceFilePreview: null,
             cultureReportAvailable: "",
             arterialReport: "",
+            arterialReportPreview: "",
         },
         section3: {
             burningSensation: "",
@@ -132,7 +133,6 @@ const PatientDetailsPage = () => {
             fungalInfection: "",
             skinLesions: "",
             openWound: "",
-            cellulitis: "",
             testType: "",
             monofilamentLeftA: "",
             monofilamentLeftB: "",
@@ -151,16 +151,12 @@ const PatientDetailsPage = () => {
             hairGrowth: "",
             pulsesPalpable: "",
             skinTemperature: "",
-            // ulcerPresence: "",
-           
-            footImage: "",
         },
     }
 
     // Function to determine if a field is a radio/boolean field
     const isRadioField = (field) => {
         const radioFields = [
-            // Section 1
             "consentDownloaded",
             "consentUploaded",
             "consentVerified",
@@ -171,10 +167,9 @@ const PatientDetailsPage = () => {
             "retinal",
             "cardiovascular",
             "cerebrovascular",
-            // "imbIschemia",
             "hypertension",
             "limbIschemia",
-            // Section 2
+            "heartFailure",
             "necrosis",
             "gangrene",
             "probetobone",
@@ -186,8 +181,6 @@ const PatientDetailsPage = () => {
             "erythema",
             "tenderness",
             "warmth",
-         
-            // Section 3
             "burningSensation",
             "painWhileWalking",
             "skinChanges",
@@ -196,7 +189,6 @@ const PatientDetailsPage = () => {
             "fungalInfection",
             "skinLesions",
             "openWound",
-            "cellulitis",
             "monofilamentLeftA",
             "monofilamentLeftB",
             "monofilamentLeftC",
@@ -206,14 +198,13 @@ const PatientDetailsPage = () => {
             "footDeformities",
             "hairGrowth",
             "pulsesPalpable",
-            // "ulcerPresence",
         ]
         return radioFields.includes(field)
     }
 
     // Convert flat API data to nested structure
     const mapFlatToNested = (flatData) => {
-        console.log("Flat API Data:", flatData)
+        console.log("mapFlatToNested: Starting mapping with Flat API Data:", flatData)
         const nestedData = JSON.parse(JSON.stringify(initialFormState))
 
         const fieldMappings = {
@@ -226,12 +217,12 @@ const PatientDetailsPage = () => {
                 retinal: ["retinal"],
                 cardiovascular: ["cardiovascular"],
                 cerebrovascular: ["cerebrovascular"],
-                // imbIschemia: ["imbIschemia", "imb_ischemia"],
                 hypertension: ["hypertension"],
                 consentDownloaded: ["consentDownloaded", "consent_downloaded"],
                 consentUploaded: ["consentUploaded", "consent_uploaded"],
                 consentVerified: ["consentVerified", "consent_verified"],
                 limbIschemia: ["limbIschemia", "limb_ischemia"],
+                consentForm: ["consentForm", "consent_form"],
             },
             section2: {
                 necrosis: ["necrosis"],
@@ -245,7 +236,7 @@ const PatientDetailsPage = () => {
                 erythema: ["erythema"],
                 tenderness: ["tenderness"],
                 warmth: ["warmth"],
-               
+                arterialReport: ["arterialReport", "arterial_report"],
             },
             section3: {
                 burningSensation: ["burningSensation", "burning_sensation"],
@@ -256,13 +247,14 @@ const PatientDetailsPage = () => {
                 fungalInfection: ["fungalInfection", "fungal_infection"],
                 skinLesions: ["skinLesions", "skin_lesions"],
                 openWound: ["openWound", "open_wound"],
-                cellulitis: ["cellulitis"],
-                monofilamentLeftA: ["monofilamentLeftA", "monofilament_left_a"],
-                monofilamentLeftB: ["monofilamentLeftB", "monofilament_left_b"],
-                monofilamentLeftC: ["monofilamentLeftC", "monofilament_left_c"],
-                monofilamentRightA: ["monofilamentRightA", "monofilament_right_a"],
-                monofilamentRightB: ["monofilamentRightB", "monofilament_right_b"],
-                monofilamentRightC: ["monofilamentRightC", "monofilament_right_c"],
+                testType: ["testType", "test_type"],
+                // Enhanced monofilament mappings with more variations
+                monofilamentLeftA: ["monofilamentLeftA", "monofilament_left_a", "monofilament_left_A", "left_a", "leftA"],
+                monofilamentLeftB: ["monofilamentLeftB", "monofilament_left_b", "monofilament_left_B", "left_b", "leftB"],
+                monofilamentLeftC: ["monofilamentLeftC", "monofilament_left_c", "monofilament_left_C", "left_c", "leftC"],
+                monofilamentRightA: ["monofilamentRightA", "monofilament_right_a", "monofilament_right_A", "right_a", "rightA"],
+                monofilamentRightB: ["monofilamentRightB", "monofilament_right_b", "monofilament_right_B", "right_b", "rightB"],
+                monofilamentRightC: ["monofilamentRightC", "monofilament_right_c", "monofilament_right_C", "right_c", "rightC"],
                 tuningForkRightMedialMalleolus: ["tuningForkRightMedialMalleolus", "tuning_fork_right_medial_malleolus"],
                 tuningForkRightLateralMalleolus: ["tuningForkRightLateralMalleolus", "tuning_fork_right_lateral_malleolus"],
                 tuningForkRightBigToe: ["tuningForkRightBigToe", "tuning_fork_right_big_toe"],
@@ -270,52 +262,145 @@ const PatientDetailsPage = () => {
                 tuningForkLeftLateralMalleolus: ["tuningForkLeftLateralMalleolus", "tuning_fork_left_lateral_malleolus"],
                 tuningForkLeftBigToe: ["tuningForkLeftBigToe", "tuning_fork_left_big_toe"],
                 footDeformities: ["footDeformities", "foot_deformities"],
+                deformityDuration: ["deformityDuration", "deformity_duration"],
                 hairGrowth: ["hairGrowth", "hair_growth"],
                 pulsesPalpable: ["pulsesPalpable", "pulses_palpable"],
                 skinTemperature: ["skinTemperature", "skin_temperature"],
-                // ulcerPresence: ["ulcerPresence", "ulcer_presence"],
             },
         }
 
         Object.keys(nestedData).forEach((section) => {
             Object.keys(nestedData[section]).forEach((field) => {
                 if (field.endsWith("Preview")) return
-
                 const isBooleanField = isRadioField(field)
-                let value
+                let value = undefined // Initialize value to undefined
 
                 if (fieldMappings[section]?.[field]) {
                     for (const variant of fieldMappings[section][field]) {
                         if (flatData[variant] !== undefined) {
                             value = flatData[variant]
+                            console.log(`mapFlatToNested: Found mapping for ${section}.${field} as ${variant}: ${value}`)
                             break
                         }
                     }
                 } else {
-                    value = flatData[field]
+                    // If no specific mapping, try direct field name
+                    if (flatData[field] !== undefined) {
+                        value = flatData[field]
+                        console.log(`mapFlatToNested: Found direct field ${section}.${field}: ${value}`)
+                    }
                 }
 
                 if (value !== undefined) {
                     if (isBooleanField) {
                         nestedData[section][field] = convertToYesNo(value)
-                    } else if (["consentForm", "necrosisPhoto", "woundReferenceFile"].includes(field)) {
-                        nestedData[section][field] = null
                     } else {
                         nestedData[section][field] = value !== null ? String(value) : ""
                     }
+                } else {
+                    console.log(`mapFlatToNested: Field ${section}.${field} not found in flatData. Keeping initial state value.`)
                 }
             })
         })
 
-        console.log("Mapped Nested Data:", nestedData)
+        console.log("mapFlatToNested: Mapped Nested Data:", nestedData)
         return nestedData
     }
 
     // Convert boolean-like values to "yes" or "no"
     const convertToYesNo = (value) => {
-        if (value === true || value === 1 || value === "1" || value === "yes") return "yes"
-        if (value === false || value === 0 || value === "0" || value === "no") return "no"
-        return ""
+        if (value === true || value === 1 || value === "1" || value === "yes" || value === "Yes" || value === "YES")
+            return "yes"
+        if (value === false || value === 0 || value === "0" || value === "no" || value === "No" || value === "NO")
+            return "no"
+        if (value === null || value === undefined || value === "") return ""
+        return String(value) // Return the actual value if it's not yes/no
+    }
+
+    // Download patient details as Excel file with ALL available fields in one sheet
+    const downloadPatientDetails = () => {
+        if (!patient) {
+            toast.error("No patient data to download.")
+            return
+        }
+
+        console.log("downloadPatientDetails: Patient object before Excel generation:", JSON.stringify(patient, null, 2))
+
+        try {
+            const workbook = XLSX.utils.book_new()
+            const allData = [["Section", "Field", "Value"]] // Header row for the single sheet
+
+            // Helper function to safely get value
+            const getValue = (value) => {
+                if (value === null || value === undefined || value === "") return "N/A"
+                return String(value)
+            }
+
+            // Function to add section data to the allData array
+            const addSectionData = (sectionName, sectionData, initialSectionState) => {
+                // Ensure sectionData is an object, even if patient.sectionX was null/undefined
+                const safeSectionData = sectionData || {}
+                for (const fieldKey in initialSectionState) {
+                    if (Object.prototype.hasOwnProperty.call(initialSectionState, fieldKey) && !fieldKey.endsWith("Preview")) {
+                        const displayField = fieldKey.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()) // Convert camelCase to "Camel Case"
+                        const value = getValue(safeSectionData?.[fieldKey])
+                        allData.push([sectionName, displayField, value])
+                    }
+                }
+            }
+
+            // Add data for each section
+            addSectionData("Section 1 - Personal & Medical", patient.section1, initialFormState.section1)
+            addSectionData("Section 2 - Ulcer Assessment", patient.section2, initialFormState.section2)
+            addSectionData("Section 3 - Foot Examination", patient.section3, initialFormState.section3)
+
+            // Create a single worksheet
+            const worksheet = XLSX.utils.aoa_to_sheet(allData)
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(workbook, worksheet, "All Patient Data")
+
+            // Style the header
+            const headerStyle = {
+                font: { bold: true },
+                fill: { fgColor: { rgb: "EEEEEE" } },
+            }
+            if (worksheet["A1"]) worksheet["A1"].s = headerStyle
+            if (worksheet["B1"]) worksheet["B1"].s = headerStyle
+            if (worksheet["C1"]) worksheet["C1"].s = headerStyle
+
+            // Auto-size columns
+            const range = XLSX.utils.decode_range(worksheet["!ref"])
+            const wscols = []
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                let maxWidth = 10
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
+                    const cell = worksheet[cellAddress]
+                    if (cell && cell.v) {
+                        const cellLength = cell.v.toString().length
+                        if (cellLength > maxWidth) {
+                            maxWidth = cellLength
+                        }
+                    }
+                }
+                wscols.push({ wch: Math.min(maxWidth + 2, 50) })
+            }
+            worksheet["!cols"] = wscols
+
+            // Generate filename
+            const patientName = patient.section1?.patient_name?.replace(/\s+/g, "_") || "Unknown"
+            const currentDate = new Date().toISOString().split("T")[0]
+            const filename = `Patient_${patientName}_ID_${patientId}_AllData_${currentDate}.xlsx`
+
+            // Write and download the file
+            XLSX.writeFile(workbook, filename)
+
+            toast.success("Complete patient details downloaded successfully in one sheet!")
+        } catch (error) {
+            console.error("Error creating Excel file:", error)
+            toast.error("Failed to download patient details. Please try again.")
+        }
     }
 
     useEffect(() => {
@@ -324,23 +409,31 @@ const PatientDetailsPage = () => {
                 setLoading(true)
                 setError(null)
                 console.log(`Fetching patient details from: /patient/${patientId}`)
-
                 const response = await apiGet(`/patient/${patientId}`)
                 console.log("API Response:", response)
 
-                // Handle different response structures
                 if (!response) {
                     throw new Error("Empty response from server")
                 }
 
-                // Check if response has data or patient property
                 const patientData = response.data || response.patient || response
                 if (!patientData) {
                     throw new Error("Patient data not found in response")
                 }
 
-                // Map flat API data to nested structure
                 const nestedData = mapFlatToNested(patientData)
+                console.log("Monofilament Test Debug (from nestedData):", {
+                    leftA: nestedData.section3?.monofilamentLeftA,
+                    leftB: nestedData.section3?.monofilamentLeftB,
+                    leftC: nestedData.section3?.monofilamentLeftC,
+                    rightA: nestedData.section3?.monofilamentRightA,
+                    rightB: nestedData.section3?.monofilamentRightB,
+                    rightC: nestedData.section3?.monofilamentRightC,
+                })
+                console.log(
+                    "Raw API fields containing 'mono':",
+                    Object.keys(patientData).filter((key) => key.toLowerCase().includes("mono")),
+                )
                 setPatient(nestedData)
             } catch (err) {
                 console.error("Fetch error:", err)
@@ -362,11 +455,13 @@ const PatientDetailsPage = () => {
 
     // Function to render status badge
     const renderStatusBadge = (value) => {
-        if (!value || value === "N/A") return null
-
-        if (value === "yes") {
+        console.log("Rendering badge for value:", value) // Debug log
+        if (!value || value === "N/A" || value === "" || value === null || value === undefined) {
+            return <span className="status-badge neutral">Not tested</span>
+        }
+        if (value === "yes" || value === "Yes" || value === "YES") {
             return <span className="status-badge positive">Yes</span>
-        } else if (value === "no") {
+        } else if (value === "no" || value === "No" || value === "NO") {
             return <span className="status-badge negative">No</span>
         } else {
             return <span className="status-badge neutral">{value}</span>
@@ -384,71 +479,63 @@ const PatientDetailsPage = () => {
 
         return (
             <div className="patient-details-container">
-                {/* Header with patient summary */}
+                {/* Enhanced Header with patient summary and download option */}
+                <div className="patient-details-header">
+                    <button onClick={() => navigate(-1)} className="back-button">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="back-icon"
+                        >
+                            <path d="M19 12H5"></path>
+                            <path d="M12 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Patient List
+                    </button>
+
+                    <div className="patient-actions">
+                        <button onClick={downloadPatientDetails} className="download-patient-btn" title="Download Patient Details">
+                            <FaDownload />
+                            <span>Download {patient.section1?.patient_name} Details</span>
+                        </button>
+                    </div>
+                </div>
                 <div className="patient-header">
-                    <div className="patient-avatar">{patient.section1?.patient_name?.charAt(0) || "P"}</div>
+                    
+                    <div className="patient-avatar">
+                        <FaUser />
+                    </div>
                     <div className="patient-header-info">
+                       
+
                         <h1>{patient.section1?.patient_name || "Unnamed Patient"}</h1>
                         <div className="patient-meta">
                             <div className="meta-item">
-                                <span className="meta-icon">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="icon"
-                                    >
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
-                                </span>
+                                <FaCalendar className="meta-icon" />
                                 <span>
                                     {patient.section1?.age || "N/A"} years, {patient.section1?.gender || "N/A"}
                                 </span>
                             </div>
                             <div className="meta-item">
-                                <span className="meta-icon">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="icon"
-                                    >
-                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                                    </svg>
-                                </span>
+                                <FaMapMarkerAlt className="meta-icon" />
                                 <span>{patient.section1?.locality || "N/A"}</span>
                             </div>
                             <div className="meta-item">
-                                <span className="meta-icon">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="icon"
-                                    >
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                                    </svg>
-                                </span>
+                                <span className="meta-icon">#</span>
                                 <span>ID: {patientId}</span>
                             </div>
                         </div>
+                    </div>
+                    <div className="patient-actions">
+                        <button onClick={downloadPatientDetails} className="download-patient-btn" title="Download Patient Details">
+                            <FaDownload />
+                            <span>Download {patient.section1?.patient_name} Details</span>
+                        </button>
                     </div>
                     <div className="patient-quick-stats">
                         <div className="stat-card">
@@ -466,76 +553,44 @@ const PatientDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Navigation tabs */}
+                {/* Enhanced Navigation tabs */}
                 <div className="tabs-container">
                     <div className="tabs">
                         <button className={`tab ${activeTab === "basic" ? "active" : ""}`} onClick={() => setActiveTab("basic")}>
-                           
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="tab-icon"
-                            >
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
+                            <div className="tab-icon">
+                                <FaUser />
+                            </div>
                             Basic Information
                         </button>
                         <button
                             className={`tab ${activeTab === "medical" ? "active" : ""}`}
                             onClick={() => setActiveTab("medical")}
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="tab-icon"
-                            >
-                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                            </svg>
+                            <div className="tab-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                                </svg>
+                            </div>
                             Medical History
                         </button>
                         <button className={`tab ${activeTab === "ulcer" ? "active" : ""}`} onClick={() => setActiveTab("ulcer")}>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="tab-icon"
-                            >
-                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
-                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
-                                <circle cx="20" cy="8" r="2"></circle>
-                            </svg>
+                            <div className="tab-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+                                    <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+                                    <circle cx="20" cy="8" r="2" />
+                                </svg>
+                            </div>
                             Ulcer & Treatment
                         </button>
                         <button className={`tab ${activeTab === "foot" ? "active" : ""}`} onClick={() => setActiveTab("foot")}>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="tab-icon"
-                            >
-                                <path d="M18 20v-8a4 4 0 0 0-4-4H6"></path>
-                                <path d="M10 6H6a4 4 0 0 0-4 4v8"></path>
-                                <path d="M2 14h20"></path>
-                            </svg>
+                            <div className="tab-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18 20v-8a4 4 0 0 0-4-4H6" />
+                                    <path d="M10 6H6a4 4 0 0 0-4 4v8" />
+                                    <path d="M2 14h20" />
+                                </svg>
+                            </div>
                             Foot Examination
                         </button>
                     </div>
@@ -563,6 +618,18 @@ const PatientDetailsPage = () => {
                                             <div className="info-value">{renderValue(patient.section1?.locality)}</div>
                                         </div>
                                         <div className="info-row">
+                                            <div className="info-label">Village/City</div>
+                                            <div className="info-value">{renderValue(patient.section1?.villageOrCity)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">State</div>
+                                            <div className="info-value">{renderValue(patient.section1?.state)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Pincode</div>
+                                            <div className="info-value">{renderValue(patient.section1?.pincode)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Education</div>
                                             <div className="info-value">{renderValue(patient.section1?.education)}</div>
                                         </div>
@@ -581,8 +648,8 @@ const PatientDetailsPage = () => {
                                     <h3 className="card-title">Socio-Demographic Information</h3>
                                     <div className="card-content">
                                         <div className="info-row">
-                                            <div className="info-label">Monthly Income</div>
-                                            <div className="info-value">{renderValue(patient.section1?.monthlyIncome)}</div>
+                                            <div className="info-label">SES Rating</div>
+                                            <div className="info-value">{renderValue(patient.section1?.sesRating)}</div>
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Family Members</div>
@@ -599,6 +666,10 @@ const PatientDetailsPage = () => {
                                     <h3 className="card-title">Health Facility Information</h3>
                                     <div className="card-content">
                                         <div className="info-row">
+                                            <div className="info-label">Treatment Type</div>
+                                            <div className="info-value">{renderValue(patient.section1?.treatmentType)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Facility Name</div>
                                             <div className="info-value">{renderValue(patient.section1?.facilityName)}</div>
                                         </div>
@@ -609,6 +680,10 @@ const PatientDetailsPage = () => {
                                         <div className="info-row">
                                             <div className="info-label">Facility Type</div>
                                             <div className="info-value">{renderValue(patient.section1?.facilityType)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Facility Email</div>
+                                            <div className="info-value">{renderValue(patient.section1?.facilityEmail)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -627,6 +702,24 @@ const PatientDetailsPage = () => {
                                         <div className="info-row">
                                             <div className="info-label">Consent Verified</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.consentVerified)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Consent Form</div>
+                                            <div className="info-value">
+                                                {patient.section1?.consentForm ? (
+                                                    <a
+                                                        href={`${IMAGE_BASE_URL}${patient.section1?.consentForm}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        download
+                                                        className="download-link"
+                                                    >
+                                                        <FaDownload /> Download
+                                                    </a>
+                                                ) : (
+                                                    <span>Not available</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -718,35 +811,62 @@ const PatientDetailsPage = () => {
                                             <div className="info-value">{renderStatusBadge(patient.section1?.renal)}</div>
                                         </div>
                                         <div className="info-row">
+                                            <div className="info-label">Renal Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.renalDuration)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Retinal</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.retinal)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Retinal Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.retinalDuration)}</div>
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Cardiovascular</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.cardiovascular)}</div>
                                         </div>
                                         <div className="info-row">
+                                            <div className="info-label">Cardiovascular Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.cardiovascularDuration)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Cerebrovascular</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.cerebrovascular)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Cerebrovascular Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.cerebrovascularDuration)}</div>
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Limb Ischemia</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.limbIschemia)}</div>
                                         </div>
                                         <div className="info-row">
+                                            <div className="info-label">Limb Ischemia Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.limbIschemiaDuration)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Hypertension</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.hypertension)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Hypertension Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.hypertensionDuration)}</div>
                                         </div>
                                         <div className="info-row">
                                             <div className="info-label">Heart Failure</div>
                                             <div className="info-value">{renderStatusBadge(patient.section1?.heartFailure)}</div>
                                         </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Heart Failure Duration</div>
+                                            <div className="info-value">{renderValue(patient.section1?.heartFailureDuration)}</div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="card">
-                                    <h3 className="card-title">Biochemical Investigation <br></br>
-                                        (Recent Report)</h3>
+                                    <h3 className="card-title">Biochemical Investigation (Recent Report)</h3>
                                     <div className="card-content">
                                         <div className="info-row">
                                             <div className="info-label">Fasting Glucose</div>
@@ -801,69 +921,43 @@ const PatientDetailsPage = () => {
                                             <div className="info-label">First Assessment</div>
                                             <div className="info-value">{renderValue(patient.section2?.firstAssessment)}</div>
                                         </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Attended Before</div>
-                                            <div className="info-value">{renderValue(patient.section2?.attendedBefore)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Facility Visited</div>
-                                            <div className="info-value">{renderValue(patient.section2?.facilityVisited)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Interval to Assessment</div>
-                                            <div className="info-value">{renderValue(patient.section2?.intervalToAssessment)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Referred By</div>
-                                            <div className="info-value">{renderValue(patient.section2?.referredBy)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Treated Days</div>
-                                            <div className="info-value">{renderValue(patient.section2?.treatedDays)}</div>
-                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="card">
-                                    <h3 className="card-title">Wound Information</h3>
+                                    <h3 className="card-title">Wound Location</h3>
                                     <div className="card-content">
                                         <div className="info-row">
-                                            <div className="info-label">Wound Size</div>
-                                            <div className="info-value">{renderValue(patient.section2?.woundSize)}</div>
+                                            <div className="info-label">Leg</div>
+                                            <div className="info-value">{renderValue(patient.section2?.leg)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Wound Location</div>
-                                            <div className="info-value">{renderValue(patient.section2?.woundLocation)}</div>
+                                            <div className="info-label">Foot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.foot)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Wound Duration</div>
-                                            <div className="info-value">{renderValue(patient.section2?.woundDuration)}</div>
+                                            <div className="info-label">Right Foot - Forefoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.rightFoot_forefoot)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Wound Classification</div>
-                                            <div className="info-value">{renderValue(patient.section2?.woundClassification)}</div>
+                                            <div className="info-label">Right Foot - Hindfoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.rightFoot_hindfoot)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Culture Report</div>
-                                            <div className="info-value">
-                                                {patient.section2?.cultureReport ? (
-                                                    <a
-                                                        href={`${IMAGE_BASE_URL}${patient.section2.cultureReport}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        download
-                                                        className="download-link"
-                                                    >
-                                                        Download <FaDownload style={{ marginLeft: '5px' }} />
-                                                    </a>
-                                                ) : (
-                                                    <span>Not available</span>
-                                                )}
-                                            </div>
+                                            <div className="info-label">Right Foot - Midfoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.rightFoot_midfoot)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Culture Report Available</div>
-                                            <div className="info-value">{renderValue(patient.section2?.cultureReportAvailable)}</div>
+                                            <div className="info-label">Left Foot - Forefoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.leftFoot_forefoot)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Left Foot - Hindfoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.leftFoot_hindfoot)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Left Foot - Midfoot</div>
+                                            <div className="info-value">{renderValue(patient.section2?.leftFoot_midfoot)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -876,6 +970,10 @@ const PatientDetailsPage = () => {
                                             <div className="info-value">{renderStatusBadge(patient.section2?.necrosis)}</div>
                                         </div>
                                         <div className="info-row">
+                                            <div className="info-label">Purulent Discharge</div>
+                                            <div className="info-value">{renderValue(patient.section2?.purulentDischarge)}</div>
+                                        </div>
+                                        <div className="info-row">
                                             <div className="info-label">Gangrene</div>
                                             <div className="info-value">{renderStatusBadge(patient.section2?.gangrene)}</div>
                                         </div>
@@ -884,7 +982,7 @@ const PatientDetailsPage = () => {
                                             <div className="info-value">{renderValue(patient.section2?.gangreneType)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Bone Exposure</div>
+                                            <div className="info-label">Probe to Bone</div>
                                             <div className="info-value">{renderStatusBadge(patient.section2?.probetobone)}</div>
                                         </div>
                                         <div className="info-row">
@@ -894,6 +992,102 @@ const PatientDetailsPage = () => {
                                         <div className="info-row">
                                             <div className="info-label">Sepsis</div>
                                             <div className="info-value">{renderStatusBadge(patient.section2?.sepsis)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Arterial Issues</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.arterialIssues)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Infection</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.infection)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Swelling</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.swelling)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Erythema</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.erythema)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Tenderness</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.tenderness)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Warmth</div>
+                                            <div className="info-value">{renderStatusBadge(patient.section2?.warmth)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <h3 className="card-title">Wound Information</h3>
+                                    <div className="card-content">
+                                        <div className="info-row">
+                                            <div className="info-label">Wound Size</div>
+                                            <div className="info-value">{renderValue(patient.section2?.woundSize)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Wound Duration</div>
+                                            <div className="info-value">{renderValue(patient.section2?.woundDuration)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Culture Report Available</div>
+                                            <div className="info-value">{renderValue(patient.section2?.cultureReportAvailable)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Culture Report</div>
+                                            <div className="info-value">
+                                                {patient.section2?.cultureReport ? (
+                                                    <a
+                                                        href={`${IMAGE_BASE_URL}${patient.section2?.cultureReport}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        download
+                                                        className="download-link"
+                                                    >
+                                                        <FaDownload /> Download
+                                                    </a>
+                                                ) : (
+                                                    <span>Not available</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Arterial Report</div>
+                                            <div className="info-value">
+                                                {patient.section2?.arterialReport ? (
+                                                    <a
+                                                        href={`${IMAGE_BASE_URL}${patient.section2?.arterialReport}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        download
+                                                        className="download-link"
+                                                    >
+                                                        <FaDownload /> Download
+                                                    </a>
+                                                ) : (
+                                                    <span>Not available</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Wound Reference File</div>
+                                            <div className="info-value">
+                                                {patient.section2?.woundReferenceFile ? (
+                                                    <a
+                                                        href={`${IMAGE_BASE_URL}${patient.section2?.woundReferenceFile}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        download
+                                                        className="download-link"
+                                                    >
+                                                        <FaDownload /> Download
+                                                    </a>
+                                                ) : (
+                                                    <span>Not available</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -918,10 +1112,6 @@ const PatientDetailsPage = () => {
                                             <div className="info-value">{renderValue(patient.section2?.offloadingDevice)}</div>
                                         </div>
                                         <div className="info-row">
-                                            <div className="info-label">Hospitalization</div>
-                                            <div className="info-value">{renderValue(patient.section2?.hospitalization)}</div>
-                                        </div>
-                                        <div className="info-row">
                                             <div className="info-label">Amputation</div>
                                             <div className="info-value">{renderValue(patient.section2?.amputation)}</div>
                                         </div>
@@ -932,6 +1122,10 @@ const PatientDetailsPage = () => {
                                         <div className="info-row">
                                             <div className="info-label">Amputation Level</div>
                                             <div className="info-value">{renderValue(patient.section2?.amputationLevel)}</div>
+                                        </div>
+                                        <div className="info-row">
+                                            <div className="info-label">Antibiotics Given</div>
+                                            <div className="info-value">{renderValue(patient.section2?.antibioticsGiven)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -970,12 +1164,6 @@ const PatientDetailsPage = () => {
                                             <div className="info-label">Fungal Infection</div>
                                             <div className="info-value">{renderStatusBadge(patient.section3?.fungalInfection)}</div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <div className="card">
-                                    <h3 className="card-title">Foot Conditions</h3>
-                                    <div className="card-content">
                                         <div className="info-row">
                                             <div className="info-label">Skin Lesions</div>
                                             <div className="info-value">{renderStatusBadge(patient.section3?.skinLesions)}</div>
@@ -984,10 +1172,12 @@ const PatientDetailsPage = () => {
                                             <div className="info-label">Open Wound</div>
                                             <div className="info-value">{renderStatusBadge(patient.section3?.openWound)}</div>
                                         </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Cellulitis</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.cellulitis)}</div>
-                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <h3 className="card-title">Foot Conditions</h3>
+                                    <div className="card-content">
                                         <div className="info-row">
                                             <div className="info-label">Foot Deformities</div>
                                             <div className="info-value">{renderStatusBadge(patient.section3?.footDeformities)}</div>
@@ -1008,73 +1198,120 @@ const PatientDetailsPage = () => {
                                             <div className="info-label">Skin Temperature</div>
                                             <div className="info-value">{renderValue(patient.section3?.skinTemperature)}</div>
                                         </div>
-                                        {/* <div className="info-row">
-                                            <div className="info-label">Ulcer Presence</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.ulcerPresence)}</div>
-                                        </div> */}
                                     </div>
                                 </div>
 
-                                <div className="card">
-                                    <h3 className="card-title">Monofilament Test</h3>
+                                <div className="card enhanced-monofilament-card">
+                                    <h3 className="card-title">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="test-icon">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                        </svg>
+                                        Monofilament Test Results
+                                    </h3>
                                     <div className="card-content">
-                                        <div className="info-row">
+                                        <div className="test-type-row">
                                             <div className="info-label">Test Type</div>
-                                            <div className="info-value">{renderValue(patient.section3?.testType)}</div>
+                                            <div className="info-value test-type-value">{renderValue(patient.section3?.testType)}</div>
                                         </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left A</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentLeftA)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left B</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentLeftB)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left C</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentLeftC)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Right A</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentRightA)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Right B</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentRightB)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Right C</div>
-                                            <div className="info-value">{renderStatusBadge(patient.section3?.monofilamentRightC)}</div>
+
+                                        <div className="monofilament-grid">
+                                            <div className="foot-section">
+                                                <h4 className="foot-title">Left Foot</h4>
+                                                <div className="test-results">
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point A</span>
+                                                        <div className="point-result">{renderStatusBadge(patient.section3?.monofilamentLeftA)}</div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point B</span>
+                                                        <div className="point-result">{renderStatusBadge(patient.section3?.monofilamentLeftB)}</div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point C</span>
+                                                        <div className="point-result">{renderStatusBadge(patient.section3?.monofilamentLeftC)}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="foot-section">
+                                                <h4 className="foot-title">Right Foot</h4>
+                                                <div className="test-results">
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point A</span>
+                                                        <div className="point-result">
+                                                            {renderStatusBadge(patient.section3?.monofilamentRightA)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point B</span>
+                                                        <div className="point-result">
+                                                            {renderStatusBadge(patient.section3?.monofilamentRightB)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Point C</span>
+                                                        <div className="point-result">
+                                                            {renderStatusBadge(patient.section3?.monofilamentRightC)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="card">
-                                    <h3 className="card-title">Tuning Fork Test</h3>
+                                <div className="card enhanced-tuning-fork-card">
+                                    <h3 className="card-title">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="test-icon">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                        </svg>
+                                        Tuning Fork Test Results
+                                    </h3>
                                     <div className="card-content">
-                                        <div className="info-row">
-                                            <div className="info-label">Right Medial Malleolus</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkRightMedialMalleolus)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Right Lateral Malleolus</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkRightLateralMalleolus)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Right Big Toe</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkRightBigToe)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left Medial Malleolus</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkLeftMedialMalleolus)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left Lateral Malleolus</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkLeftLateralMalleolus)}</div>
-                                        </div>
-                                        <div className="info-row">
-                                            <div className="info-label">Left Big Toe</div>
-                                            <div className="info-value">{renderValue(patient.section3?.tuningForkLeftBigToe)}</div>
+                                        <div className="tuning-fork-grid">
+                                            <div className="foot-section">
+                                                <h4 className="foot-title">Right Foot</h4>
+                                                <div className="test-results">
+                                                    <div className="test-point">
+                                                        <span className="point-label">Medial Malleolus</span>
+                                                        <div className="point-result">
+                                                            {renderValue(patient.section3?.tuningForkRightMedialMalleolus)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Lateral Malleolus</span>
+                                                        <div className="point-result">
+                                                            {renderValue(patient.section3?.tuningForkRightLateralMalleolus)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Big Toe</span>
+                                                        <div className="point-result">{renderValue(patient.section3?.tuningForkRightBigToe)}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="foot-section">
+                                                <h4 className="foot-title">Left Foot</h4>
+                                                <div className="test-results">
+                                                    <div className="test-point">
+                                                        <span className="point-label">Medial Malleolus</span>
+                                                        <div className="point-result">
+                                                            {renderValue(patient.section3?.tuningForkLeftMedialMalleolus)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Lateral Malleolus</span>
+                                                        <div className="point-result">
+                                                            {renderValue(patient.section3?.tuningForkLeftLateralMalleolus)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="test-point">
+                                                        <span className="point-label">Big Toe</span>
+                                                        <div className="point-result">{renderValue(patient.section3?.tuningForkLeftBigToe)}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1089,22 +1326,7 @@ const PatientDetailsPage = () => {
     return (
         <AdminLayout>
             <div className="patient-details-page">
-                <button onClick={() => navigate(-1)} className="back-button">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="back-icon"
-                    >
-                        <path d="M19 12H5"></path>
-                        <path d="M12 19l-7-7 7-7"></path>
-                    </svg>
-                    Back to Patient List
-                </button>
+               
 
                 {loading ? (
                     <div className="loading-container">
@@ -1149,10 +1371,6 @@ const PatientDetailsPage = () => {
                         <p>No patient data available</p>
                     </div>
                 )}
-
-                <style jsx>{`
-  
-        `}</style>
             </div>
         </AdminLayout>
     )

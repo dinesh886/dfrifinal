@@ -21,7 +21,28 @@
     display: flex;
     align-items: center;
 }
+.user-logo-container {
+    padding: 10px;
+}
 
+.user-logo-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* Adjust spacing between logos */
+}
+
+.user-logo-placeholder img {
+    height: 55px;
+    /* Or adjust based on your layout */
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.user-logo-placeholder img:hover {
+    transform: scale(1.05);
+    /* Slight zoom on hover */
+}
 /* Profile Section */
 .user-profile-section {
     position: relative;

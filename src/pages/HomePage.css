@@ -1,0 +1,12 @@
+.info-panel2{
+ 
+            flex: 1;
+            background-color: var(--info-panel-bg);
+            background-image: radial-gradient(circle at 10% 20%, var(--primary-light) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, var(--primary-light) 0%, transparent 20%);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;   
+    width: 50%;
+}

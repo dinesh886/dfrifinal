@@ -1,12 +1,13 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { FaCalendarAlt } from "react-icons/fa";
-import { RxCross2 } from "react-icons/rx";
-import { DatePicker } from "antd";
-import { BsDownload } from "react-icons/bs";
-import { toast } from "react-toastify";
-import "./ExportModal.css";
+import { useState } from "react"
+import { FaCalendarAlt } from "react-icons/fa"
+import { RxCross2 } from "react-icons/rx"
+import { Button, DatePicker } from "antd"
+import { BsDownload } from "react-icons/bs"
+import { toast } from "react-toastify"
+import "./ExportModal.css"
+import moment from "moment"
 
 const ExportModal = ({
     isOpen,
@@ -17,74 +18,75 @@ const ExportModal = ({
     columns = [],
     data = [],
 }) => {
-    const [dateRange, setDateRange] = useState([null, null]);
-    const [gender, setGender] = useState("all");
-    const [ageRange, setAgeRange] = useState({ min: "", max: "" });
+    const [dateRange, setDateRange] = useState([null, null])
+    const [gender, setGender] = useState("all")
+    const [ageRange, setAgeRange] = useState({ min: "", max: "" })
     const [errors, setErrors] = useState({
         dateRange: "",
         ageRange: "",
-    });
+    })
 
     // Validate fields based on available data
     const validateFields = () => {
         const newErrors = {
             dateRange: "",
             ageRange: "",
-        };
-        let isValid = true;
+        }
+        let isValid = true
 
         // Validate date range if date field exists
-        const hasDateField = data.some((item) => item.date);
+        const hasDateField = data.some((item) => item.date)
         if (hasDateField) {
             if (!dateRange[0] || !dateRange[1]) {
-                newErrors.dateRange = "Both start and end dates are required";
-                isValid = false;
+                newErrors.dateRange = "Both start and end dates are required"
+                isValid = false
             } else if (dateRange[0] > dateRange[1]) {
-                newErrors.dateRange = "End date must be after start date";
-                isValid = false;
+                newErrors.dateRange = "End date must be after start date"
+                isValid = false
             }
         }
 
         // Validate age range if age field exists
-        const hasAgeField = data.some((item) => item.age);
+        const hasAgeField = data.some((item) => item.age)
         if (hasAgeField) {
             if (!ageRange.min || !ageRange.max) {
-                newErrors.ageRange = "Both min and max ages are required";
-                isValid = false;
-            } else if (parseInt(ageRange.min) > parseInt(ageRange.max)) {
-                newErrors.ageRange = "Max age must be greater than min age";
-                isValid = false;
-            } else if (parseInt(ageRange.min) < 0 || parseInt(ageRange.max) < 0) {
-                newErrors.ageRange = "Age cannot be negative";
-                isValid = false;
+                newErrors.ageRange = "Both min and max ages are required"
+                isValid = false
+            } else if (Number.parseInt(ageRange.min) > Number.parseInt(ageRange.max)) {
+                newErrors.ageRange = "Max age must be greater than min age"
+                isValid = false
+            } else if (Number.parseInt(ageRange.min) < 0 || Number.parseInt(ageRange.max) < 0) {
+                newErrors.ageRange = "Age cannot be negative"
+                isValid = false
             }
         }
 
-        setErrors(newErrors);
-        return isValid;
-    };
+        setErrors(newErrors)
+        return isValid
+    }
 
     const handleExportClick = () => {
         if (!validateFields()) {
-            toast.error("Please fix the errors before exporting.");
-            return;
+            toast.error("Please fix the errors before exporting.")
+            return
         }
-        // Hardcode format to xlsx since only Excel is supported
-        onExport({ format: "xlsx", gender, ageRange, dateRange });
-    };
 
-    if (!isOpen) return null;
+        // Adjust the end date to the end of the day to ensure inclusivity
+        const adjustedDateRange =
+            dateRange[0] && dateRange[1] ? [dateRange[0], moment(dateRange[1]).endOf("day")] : dateRange
+
+        // Hardcode format to xlsx since only Excel is supported
+        onExport({ format: "xlsx", gender, ageRange, dateRange: adjustedDateRange })
+    }
+
+    if (!isOpen) return null
 
     return (
         <div className="modal-overlay">
             <div className="export-modal">
                 <div className="modal-header">
                     <h3>Export Data</h3>
-                    <button
-                        className="close-btn"
-                        onClick={onClose}
-                        aria-label="Close export modal"
-                    >
+                    <button className="close-btn" onClick={onClose} aria-label="Close export modal">
                         <RxCross2 />
                     </button>
                 </div>
@@ -103,9 +105,7 @@ const ExportModal = ({
                                     disabledDate={(current) => current && current > new Date()} // <-- Add this
                                 />
 
-                                {errors.dateRange && (
-                                    <div className="error-message">{errors.dateRange}</div>
-                                )}
+                                {errors.dateRange && <div className="error-message">{errors.dateRange}</div>}
                             </div>
                         </div>
 
@@ -144,9 +144,9 @@ const ExportModal = ({
                                     placeholder="Min"
                                     value={ageRange.min}
                                     onChange={(e) => {
-                                        const value = e.target.value;
+                                        const value = e.target.value
                                         if (value === "" || /^[0-9\b]+$/.test(value)) {
-                                            setAgeRange({ ...ageRange, min: value });
+                                            setAgeRange({ ...ageRange, min: value })
                                         }
                                     }}
                                     className={`age-input ${errors.ageRange ? "error" : ""}`}
@@ -158,32 +158,25 @@ const ExportModal = ({
                                     placeholder="Max"
                                     value={ageRange.max}
                                     onChange={(e) => {
-                                        const value = e.target.value;
+                                        const value = e.target.value
                                         if (value === "" || /^[0-9\b]+$/.test(value)) {
-                                            setAgeRange({ ...ageRange, max: value });
+                                            setAgeRange({ ...ageRange, max: value })
                                         }
                                     }}
                                     className={`age-input ${errors.ageRange ? "error" : ""}`}
                                     min="0"
                                 />
                             </div>
-                            {errors.ageRange && (
-                                <div className="error-message">{errors.ageRange}</div>
-                            )}
+                            {errors.ageRange && <div className="error-message">{errors.ageRange}</div>}
                         </div>
                     </div>
                 </div>
 
                 <div className="modal-footer">
-                    <a
-                        type="button"
-                        className="cancel-btn"
-                        onClick={onClose}
-                        disabled={isLoading}
-                    >
+                    <Button type="button" className="cancel-btn" onClick={onClose} disabled={isLoading}>
                         Cancel
-                    </a>
-                    <a
+                    </Button>
+                    <button
                         type="button"
                         className="action-btn download-excel"
                         onClick={handleExportClick}
@@ -196,11 +189,12 @@ const ExportModal = ({
                                 <BsDownload className="btn-icon" /> Download Excel
                             </>
                         )}
-                    </a>
+                    </button>
                 </div>
+
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default ExportModal;
+export default ExportModal
