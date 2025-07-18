@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import { formatToDDMMYYYY } from "../../utils/dateUtils";
 import { FaSpinner, FaSync } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import { Tooltip } from "antd";
 const FootExam = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,9 +106,11 @@ const FootExam = () => {
       header: "Status",
       sortable: false,
       render: (value) => (
+        <Tooltip title="Status Completed">
         <span className={`status-badge ${value?.toLowerCase() || "completed"}`}>
           <CircleCheck size={16} />
         </span>
+            </Tooltip >
       ),
     },
     // Add this to your columns array:
@@ -117,14 +119,17 @@ const FootExam = () => {
       header: "Actions",
       sortable: false,
       render: (_, record) => (
-        <Link
-          to={`/admin/patient/${record.patientId || record.id}`}
-          className="view-details-link"
-        >
-          <ScanEye className="view-details "/> 
-        </Link>
+        <Tooltip title="View Records">
+          <Link
+            to={`/admin/patient/${record.patientId || record.id}`}
+            className="view-details-link"
+          >
+            <ScanEye className="view-details" />
+          </Link>
+        </Tooltip>
       ),
     }
+
     
   ];
 

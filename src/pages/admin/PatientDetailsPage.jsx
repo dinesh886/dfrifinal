@@ -8,7 +8,7 @@ import "./PatientDetailsPage.css"
 import { IMAGE_BASE_URL } from "../../config/api"
 import { FaDownload, FaUser, FaCalendar, FaMapMarkerAlt } from "react-icons/fa"
 import * as XLSX from "xlsx"
-
+import { Tooltip } from "antd";
 const PatientDetailsPage = () => {
     const { patientId } = useParams()
     const navigate = useNavigate()
@@ -17,6 +17,9 @@ const PatientDetailsPage = () => {
     const [error, setError] = useState(null)
     const [activeTab, setActiveTab] = useState("basic")
 
+    useEffect (()=>{
+        window.scrollTo(0,0)
+    },[]);
     // Initial form state structure
     const initialFormState = {
         section1: {
@@ -481,6 +484,7 @@ const PatientDetailsPage = () => {
             <div className="patient-details-container">
                 {/* Enhanced Header with patient summary and download option */}
                 <div className="patient-details-header">
+                    <Tooltip title="Back To Foot Exam" >
                     <button onClick={() => navigate(-1)} className="back-button">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -497,61 +501,62 @@ const PatientDetailsPage = () => {
                         </svg>
                         Back to Patient List
                     </button>
-
+                    </Tooltip>
                     <div className="patient-actions">
-                        <button onClick={downloadPatientDetails} className="download-patient-btn" title="Download Patient Details">
+                        <button onClick={downloadPatientDetails} className="download-patient-btn" >
                             <FaDownload />
                             <span>Download {patient.section1?.patient_name} Details</span>
                         </button>
                     </div>
                 </div>
                 <div className="patient-header">
-                    
-                    <div className="patient-avatar">
-                        <FaUser />
+                    <div className="patient-header-left">
+                        <div className="patient-avatar">
+                            <FaUser />
+                        </div>
+                        <div className="patient-header-info">
+                            <h1>{patient.section1?.patient_name || "Unnamed Patient"}</h1>
+                            <div className="patient-meta">
+                                <div className="meta-item">
+                                    <FaCalendar className="meta-icon" />
+                                    <span>{patient.section1?.age || "N/A"} years, {patient.section1?.gender || "N/A"}</span>
+                                </div>
+                                <div className="meta-item">
+                                    <FaMapMarkerAlt className="meta-icon" />
+                                    <span>{patient.section1?.locality || "N/A"}</span>
+                                </div>
+                                <div className="meta-item">
+                                    <span className="meta-icon">#</span>
+                                    <span>ID: {patientId}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="patient-header-info">
-                       
 
-                        <h1>{patient.section1?.patient_name || "Unnamed Patient"}</h1>
-                        <div className="patient-meta">
-                            <div className="meta-item">
-                                <FaCalendar className="meta-icon" />
-                                <span>
-                                    {patient.section1?.age || "N/A"} years, {patient.section1?.gender || "N/A"}
-                                </span>
+                    <div className="patient-header-right">
+                        {/* <div className="patient-actions">
+                            <button onClick={downloadPatientDetails} className="download-patient-btn" title="Download Patient Details">
+                                <FaDownload />
+                                <span>Download {patient.section1?.patient_name} Details</span>
+                            </button>
+                        </div> */}
+                        <div className="patient-quick-stats">
+                            <div className="stat-card">
+                                <div className="stat-value">{patient.section1?.diabetesType || "N/A"}</div>
+                                <div className="stat-label">Diabetes Type</div>
                             </div>
-                            <div className="meta-item">
-                                <FaMapMarkerAlt className="meta-icon" />
-                                <span>{patient.section1?.locality || "N/A"}</span>
+                            <div className="stat-card">
+                                <div className="stat-value">{patient.section1?.diabetesDuration || "N/A"}</div>
+                                <div className="stat-label">Duration</div>
                             </div>
-                            <div className="meta-item">
-                                <span className="meta-icon">#</span>
-                                <span>ID: {patientId}</span>
+                            <div className="stat-card">
+                                <div className="stat-value">{patient.section1?.hba1c || "N/A"}</div>
+                                <div className="stat-label">HbA1c</div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="patient-actions">
-                        <button onClick={downloadPatientDetails} className="download-patient-btn" title="Download Patient Details">
-                            <FaDownload />
-                            <span>Download {patient.section1?.patient_name} Details</span>
-                        </button>
-                    </div>
-                    <div className="patient-quick-stats">
-                        <div className="stat-card">
-                            <div className="stat-value">{patient.section1?.diabetesType || "N/A"}</div>
-                            <div className="stat-label">Diabetes Type</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{patient.section1?.diabetesDuration || "N/A"}</div>
-                            <div className="stat-label">Duration</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{patient.section1?.hba1c || "N/A"}</div>
-                            <div className="stat-label">HbA1c</div>
                         </div>
                     </div>
                 </div>
+
 
                 {/* Enhanced Navigation tabs */}
                 <div className="tabs-container">
@@ -1326,12 +1331,28 @@ const PatientDetailsPage = () => {
     return (
         <AdminLayout>
             <div className="patient-details-page">
-               
+                <div className="page-header">
+                    <h1>RSSDI Save the Feet 2.0</h1>
+                    <p>View, manage, and export participant records in the system.</p>
+
+                    <div className="header-actions footexam-actions">
+                        {/* <button className="refresh-btn" onClick={handleRefresh} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader size={16} className="animate-spin" />
+                  <span>Loading...</span>
+                </>
+              ) : (
+                <span>Refresh Data</span>
+              )}
+            </button> */}
+                    </div>
+                </div>
 
                 {loading ? (
-                    <div className="loading-container">
-                        <div className="loading-spinner"></div>
-                        <p>Loading patient data...</p>
+                    <div className="loading-indicator">
+                        <div className="loader"></div>
+                        {/* <span className="loader">Loading patient records...</span> */}
                     </div>
                 ) : error ? (
                     <div className="error-container">
