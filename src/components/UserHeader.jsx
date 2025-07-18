@@ -101,7 +101,7 @@ const UserHeader = () => {
                             {profileOpen && (
                                 <div className="user-profile-dropdown" ref={dropdownRef}>
                                     <div className="user-dropdown-header">
-                                            {user.picture ? (
+                                            {/* {user.picture ? (
                                                 <img
                                                     src={user.picture}
                                                     alt="User profile"
@@ -111,7 +111,7 @@ const UserHeader = () => {
                                                 />
                                             ) : (
                                                 <FaUserCircle className="user-profile-icon" />
-                                            )}
+                                            )} */}
 
                                         <div className="user-info">
                                             <h4>{user.name}</h4>

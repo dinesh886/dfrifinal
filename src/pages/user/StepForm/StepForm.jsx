@@ -1273,10 +1273,10 @@ const StepForm = () => {
       };
 
       // Update local storage
-      const updatedRecords = isEditMode
-        ? existingRecords.map(record => record.patientId === patientIdToUse ? updatedRecord : record)
-        : [updatedRecord, ...existingRecords];
-      localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
+      // const updatedRecords = isEditMode
+      //   ? existingRecords.map(record => record.patientId === patientIdToUse ? updatedRecord : record)
+      //   : [updatedRecord, ...existingRecords];
+      // localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
 
       // Clean up and navigate
       localStorage.removeItem("stepFormData");

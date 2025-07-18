@@ -152,7 +152,7 @@ const Header = () => {
                             </div>
                         </button>
                         <div className={`dropdown-menu ${isDropdownOpen ? "show" : ""}`}>
-                            <span className="dropdown-item">
+                            <span className="dropdown-item admin-name-item">
                                 {(user?.role === "admin" || user?.role === "subadmin") && (
                                     <div className="admin-name">
                                         {user?.role === "admin" ? user?.name : user?.username}
