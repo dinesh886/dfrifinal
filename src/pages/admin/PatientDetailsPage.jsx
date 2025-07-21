@@ -9,6 +9,9 @@ import { IMAGE_BASE_URL } from "../../config/api"
 import { FaDownload, FaUser, FaCalendar, FaMapMarkerAlt } from "react-icons/fa"
 import * as XLSX from "xlsx"
 import { Tooltip } from "antd";
+
+
+
 const PatientDetailsPage = () => {
     const { patientId } = useParams()
     const navigate = useNavigate()

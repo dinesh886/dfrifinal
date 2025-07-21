@@ -17,6 +17,9 @@ import "react-toastify/dist/ReactToastify.css"
 import { apiGet } from "../../../services/api-helper"
 import { IMAGE_BASE_URL } from "../../../config/api"
 import { API_BASE_URL } from "../../../config/api"
+import { Modal, Button } from "antd";
+import FollowUpModal from "../../../components/FollowUpAskModal/FollowUpModal"; // Add this import
+
 
 const StepForm = () => {
   const location = useLocation()
@@ -28,7 +31,43 @@ const StepForm = () => {
   const step1SubmittedRef = useRef(false)
 
   const [selectedTest, setSelectedTest] = useState("");
+  // Inside the StepForm component, add these state variables:
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const handleFollowUpChoice = async (followUpType) => { // Now receives string
+    try {
+      const followUpDate = calculateFollowUpDate(new Date(), followUpType);
 
+      const updatedRecord = {
+        patientId,
+        ...formData,
+        followUpDate: followUpDate.toISOString(),
+        followUpType, // This now stores '3-month' or '6-month'
+        followUpStatus: "Pending",
+        lastVisit: new Date().toISOString(),
+        status: "completed",
+        canEdit: true,
+      };
+
+      // Save to storage
+      const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
+      const updatedRecords = [updatedRecord, ...existingRecords];
+      localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
+
+      setShowFollowUpModal(false);
+
+      navigate("/user/rssdi-save-the-feet-2.0", {
+        state: {
+          showToast: true,
+          toastMessage: `${followUpType} follow-up scheduled!`,
+          refreshData: true,
+        },
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Error scheduling follow-up:", error);
+      toast.error("Failed to schedule follow-up");
+    }
+  };
   const initialFormState = {
     section1: {
       patient_name: "",
@@ -1258,40 +1297,23 @@ const StepForm = () => {
         if (Object.keys(editedFields.section3).length > 0) await submitStep3(patientIdToUse);
       }
 
-      // Save to local storage and navigate
-      // const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
-      // const updatedRecord = {
-      //   patientId: patientIdToUse,
-      //   patient_name: formData.section1.patient_name,
-      //   formData: formData,
-      //   submissionDate: new Date().toISOString(),
-      //   appointmentDate: new Date().toISOString(),
-      //   status: "completed",
-      //   lastVisit: new Date().toISOString(),
-      //   followUpDate: calculateFollowUpDate(new Date()).toISOString(),
-      //   canEdit: true,
-      // };
-
-     
-      // const updatedRecords = isEditMode
-      //   ? existingRecords.map(record => record.patientId === patientIdToUse ? updatedRecord : record)
-      //   : [updatedRecord, ...existingRecords];
-      // localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
-
-      // Clean up and navigate
+      // Clean up
       localStorage.removeItem("stepFormData");
       setEditedFields({ section1: {}, section2: {}, section3: {} });
 
-      navigate("/user/rssdi-save-the-feet-2.0", {
-        state: {
-          showToast: true,
-          toastMessage: isEditMode
-            ? "Patient assessment updated successfully!"
-            : "Patient assessment completed successfully!",
-          refreshData: true,
-        },
-        replace: true,
-      });
+      // Only show follow-up modal for new submissions (not in edit mode)
+      if (!isEditMode) {
+        setShowFollowUpModal(true);
+      } else {
+        navigate("/user/rssdi-save-the-feet-2.0", {
+          state: {
+            showToast: true,
+            toastMessage: "Patient assessment updated successfully!",
+            refreshData: true,
+          },
+          replace: true,
+        });
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast.error(error.message || "Failed to submit form. Please try again.");
@@ -1299,7 +1321,6 @@ const StepForm = () => {
       setIsSaving(false);
     }
   };
-
   // Handle file upload
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files).map((file) => ({
@@ -1722,6 +1743,11 @@ const StepForm = () => {
               replace: true,
             })
           }}
+        />
+        <FollowUpModal
+          show={showFollowUpModal}
+          onClose={() => setShowFollowUpModal(false)}
+          onChoice={handleFollowUpChoice}
         />
       </div>
     </FormLayout>

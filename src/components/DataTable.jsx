@@ -198,11 +198,16 @@ const DataTable = ({
         let result = [...combinedData];
 
         if (searchTerm) {
+            const normalizedSearch = searchTerm.toLowerCase().replace(/\s/g, "");
+
             result = result.filter((row) => {
                 return columns.some((col) => {
                     if (col.searchable === false) return false;
                     const value = row[col.key];
-                    return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+                    if (value === undefined || value === null) return false;
+
+                    const normalizedValue = String(value).toLowerCase().replace(/\s/g, "");
+                    return normalizedValue.includes(normalizedSearch);
                 });
             });
         }
@@ -219,6 +224,7 @@ const DataTable = ({
 
         return result;
     }, [combinedData, columns, searchTerm, sortConfig]);
+
 
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     const currentData = filteredData.slice(

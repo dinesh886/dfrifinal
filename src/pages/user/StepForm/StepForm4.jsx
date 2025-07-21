@@ -88,9 +88,9 @@ const StepForm4 = ({formData, handleChange, errors}) => {
 
               {/* Third Column */}
               <div className="col-md-4 medical-add-group">
-                <label className='medical-add-label required'>Has the wound healed?</label>
+                <label className="medical-add-label required">Has the wound healed?</label>
                 <div className="medical-add-radio-group">
-                  <label className='medical-add-radio-label'>
+                  <label className="medical-add-radio-label">
                     <input
                       type="radio"
                       name="woundHealed"
@@ -102,7 +102,7 @@ const StepForm4 = ({formData, handleChange, errors}) => {
                     />
                     <span className="medical-add-radio-button-label">Yes</span>
                   </label>
-                  <label className='medical-add-radio-label'>
+                  <label className="medical-add-radio-label">
                     <input
                       type="radio"
                       name="woundHealed"
@@ -116,6 +116,84 @@ const StepForm4 = ({formData, handleChange, errors}) => {
                   </label>
                 </div>
               </div>
+
+              {/* Show healing time if healed */}
+              {formData.section4.woundHealed === 'yes' && (
+                <div className="col-md-4 medical-add-group">
+                  <label className="medical-add-label required">Healing Time (in days)</label>
+                  <input
+                    type="number"
+                    name="healingTime"
+                    className="form-control"
+                    value={formData.section4.healingTime || ''}
+                    onChange={(e) => handleChange(e, 'section4')}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Show conditional fields if not healed */}
+              {formData.section4.woundHealed === 'no' && (
+                <>
+                  {/* Reason */}
+                  <div className="col-md-4 medical-add-group">
+                    <label className="medical-add-label required">Reason</label>
+                    <select
+                      name="nonHealingReason"
+                      className="form-control"
+                      value={formData.section4.nonHealingReason || ''}
+                      onChange={(e) => handleChange(e, 'section4')}
+                      required
+                    >
+                      <option value="">-- Select Reason --</option>
+                      <option value="Loss of follow up">Loss of follow up</option>
+                      <option value="Non-compliance">Non-compliance</option>
+                      <option value="Healed and reoccurrence">Healed and reoccurrence</option>
+                    </select>
+                  </div>
+
+                  {/* Surgical intervention */}
+                  <div className="col-md-4 medical-add-group">
+                    <label className="medical-add-label required">Surgical intervention performed</label>
+                    <select
+                      name="surgicalIntervention"
+                      className="form-control"
+                      value={formData.section4.surgicalIntervention || ''}
+                      onChange={(e) => handleChange(e, 'section4')}
+                      required
+                    >
+                      <option value="">-- Select Intervention --</option>
+                      <option value="Callus excision">Callus excision</option>
+                      <option value="Sequestectomy">Sequestectomy</option>
+                      <option value="Incision and drainage">Incision and drainage</option>
+                      <option value="Wound debridement">Wound debridement</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  </div>
+
+                  {/* Amputation performed */}
+                  <div className="col-md-4 medical-add-group">
+                    <label className="medical-add-label required">Amputation performed?</label>
+                    <div className="medical-add-radio-group">
+                      {['No', 'Minor', 'Major'].map((type) => (
+                        <label key={type} className="medical-add-radio-label">
+                          <input
+                            type="radio"
+                            name="amputationPerformed"
+                            value={type}
+                            checked={formData.section4.amputationPerformed === type}
+                            onChange={(e) => handleChange(e, 'section4')}
+                            className="medical-add-radio-button"
+                            required
+                          />
+                          <span className="medical-add-radio-button-label">{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
             </div>
 
             {/* Conditional Amputation Details */}

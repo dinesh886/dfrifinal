@@ -44,6 +44,8 @@ const FootExam = () => {
         patientName: record.patient_name || "Unknown",
         doctorEmail: record.doctor_email || "N/A",
         submissionDate: record.created_at || new Date().toISOString(),
+        created_at: record.created_at || new Date().toISOString(),
+        updated_at: record.updated_at || record.created_at || new Date().toISOString(),
         status: record.status || "Completed",
       }));
   
@@ -89,13 +91,28 @@ const FootExam = () => {
       header: "Participant Name",
       sortable: true,
     },
+    // New Created Date column
     {
-      key: "submissionDate",
-      header: "Date",
+      key: "created_at",
+      header: "Created Date",
       sortable: true,
       render: (value) => {
         try {
           return formatToDDMMYYYY(value);
+        } catch {
+          return "N/A";
+        }
+      },
+    },
+    // New Updated Date column
+    {
+      key: "updated_at",
+      header: "Updated Date",
+      sortable: true,
+      render: (value, record) => {
+        try {
+          // If updated_at doesn't exist, show created_at instead
+          return formatToDDMMYYYY(value || record.created_at);
         } catch {
           return "N/A";
         }

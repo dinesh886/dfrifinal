@@ -16,7 +16,7 @@ import SubadminForm from '../pages/admin/SubadminForm';
 import UserLogin from '../pages/UserLogin';
 import UserDashboard from '../pages/user/UserDashboard';
 import DoctorSignup from '../pages/user/DoctorSignup';
-
+import SixMonthFollowUpForm from '../pages/user/StepForm/SixMonthFollowUpForm';
 // Shared Components
 import HomePage from '../pages/HomePage';
 import Unauthorized from '../pages/Unauthorized';
@@ -62,6 +62,8 @@ const AppRoutes = () => {
                 <Route path="/user/survey/:patientId" element={<StepForm />} />
                 <Route path="/user/followup/:patientId" element={<FollowUpForm />} />
                 <Route path="/user/view-followup/:patientId" element={<ViewFollowUpForm />} />
+                <Route path="/user/view-followup/:patientId" element={<ViewFollowUpForm />} />
+                <Route path="/user/followup-6month/:patientId" element={<SixMonthFollowUpForm />} />
               
                 {/* <Route
                     path="/user/view-assessment/:patientId"

@@ -12,8 +12,6 @@
     import { apiGet } from "../../services/api-helper"
     import MessageBanner from "../../components/MessageBanner/MessageBanner"
     import { FaSpinner, FaSync } from "react-icons/fa";
-import { Tooltip } from "antd";
-
 
     const UserDashboard = () => {
         const location = useLocation()
@@ -74,18 +72,18 @@ import { Tooltip } from "antd";
         }
 
         const determineFollowUpStatus = (patient) => {
-            if (!patient?.submissionDate) return "Pending"
+            if (!patient?.submissionDate) return "Pending";
 
             if (patient.follow_up_status === "Completed" && patient.last_follow_up_date) {
-                return "Completed"
+                return "Completed";
             }
 
-            const now = new Date()
-            const followUpDate = new Date(patient.followUpDate || calculateSixMonthFollowUp(patient.submissionDate))
+            const now = new Date();
+            const followUpDate = new Date(patient.followUpDate || calculateSixMonthFollowUp(patient.submissionDate));
 
-            if (now >= followUpDate) return "Due"
-            return "Pending"
-        }
+            if (now >= followUpDate) return "Due";
+            return "Pending";
+        };
     
         const handleStepForm = (patient, isUpdate = false) => {
             console.log("Navigating with isUpdate:", isUpdate);
@@ -461,10 +459,13 @@ import { Tooltip } from "antd";
 
         const handleSubmitFollowUp = (patient) => {
             try {
-                setIsSaving(true)
-                const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}")
+                setIsSaving(true);
+                const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
 
-                navigate(`/user/followup/${patient.patientId}`, {
+                // Determine which form to use based on followUpType
+                const formType = patient.followUpType === '3-month' ? '3month' : '6month';
+
+                navigate(`/user/followup-${formType}/${patient.patientId}`, {
                     state: {
                         initialData: {
                             patientId: patient.patientId,
@@ -473,19 +474,19 @@ import { Tooltip } from "antd";
                             doctor_email: currentUser?.email || "unknown@doctor.com",
                             lastFollowUpDate: patient.lastFollowUpDate,
                             followUpData: patient.followUpData || null,
+                            followUpType: patient.followUpType
                         },
                         isInitialFollowUp: !patient.followUpData,
                         isUpdate: !!patient.followUpData,
                     },
-                })
+                });
             } catch (error) {
-                console.error("Error navigating to follow-up form:", error)
-                toast.error("Failed to open follow-up form")
+                console.error("Error navigating to follow-up form:", error);
+                toast.error("Failed to open follow-up form");
             } finally {
-                setIsSaving(false)
+                setIsSaving(false);
             }
-        }
-
+        };
         const handleFileUpload = (event) => {
             const newFile = event.target.files[0]
             setUploadedFiles((prevFiles) => [...prevFiles, newFile])
@@ -608,22 +609,15 @@ import { Tooltip } from "antd";
                             <div className="main-assessment-actions">
                                 {canEdit && remainingTime ? (
                                     <>
-                                      
-
-                                 <Tooltip title="Edit Patient Details">
-                                 
-
-                                        <a className="action-btn edit-btn" onClick={() => handleStepForm(row, true)} >
+                                        <a className="action-btn edit-btn" onClick={() => handleStepForm(row, true)} title="Edit assessment">
                                             <FilePenLine size={16} />
                                         </a>
-                                        </Tooltip>
                                         <div className="edit-countdown">
                                             <small>You can edit this for another {remainingTime}</small>
                                         </div>
                                     </>
                                 ) : (
                                     <div className="expired-indicator" title="Edit period expired">
-                                    
                                         <Lock size={16} />
                                         <span className="expired-text">Edit Expired</span>
                                     </div>
@@ -633,61 +627,63 @@ import { Tooltip } from "antd";
                     )
                 },
             },
+            // Update the follow-up column renderer to handle clicks:
             {
                 key: "follow_up_status",
                 header: "Follow Up",
                 sortable: true,
                 render: (_, row) => {
-                    // Add null check and default value
-                    const status = row.followUpStatus || row.follow_up_status || "Pending"
+                    const status = row.followUpStatus || row.follow_up_status || "Pending";
+                    const isDue = status === "Due";
+                    const followUpType = row.followUpType || '6-month'; // Default to 6-month if not specified
 
                     const handleClick = () => {
-                        if (status === "Due") {
-                            handleSubmitFollowUp(row)
-                        } else if (status === "Pending") {
-                            toast.info(`Follow-up available on ${formatToDDMMYYYY(row.followUpDate)}`)
+                        if (isDue) {
+                            handleSubmitFollowUp(row);
+                        } else {
+                            const availableDate = formatToDDMMYYYY(row.followUpDate);
+                            const followUpDuration = followUpType === '3-month' ? '3-month' : '6-month';
+                            toast.info(`${followUpDuration} follow-up available on ${availableDate}`);
                         }
-                    }
+                    };
 
                     return (
                         <div className="follow-up-cell">
                             <div
-                                className={`follow-up-content ${status !== "Completed" ? "clickable" : ""}`}
-                                onClick={status !== "Completed" ? handleClick : undefined}
+                                className={`follow-up-content ${isDue ? "clickable" : ""}`}
+                                onClick={isDue ? handleClick : undefined}
                                 title={
-                                    status === "Due"
-                                        ? "Click to submit follow-up"
-                                        : status === "Pending"
-                                            ? `Follow-up available after ${formatToDDMMYYYY(row.followUpDate)}`
-                                            : "Follow-up completed"
+                                    isDue
+                                        ? `Click to submit ${followUpType} follow-up`
+                                        : `${followUpType} follow-up available after ${formatToDDMMYYYY(row.followUpDate)}`
                                 }
                             >
                                 <span className={`follow-up-status ${status.toLowerCase()}`}>
                                     {status === "Pending"
-                                        ? "Follow-up Pending"
+                                        ? `${followUpType} Follow-up Pending`
                                         : status === "Due"
-                                            ? "Follow-up Due"
+                                            ? `${followUpType} Follow-up Due`
                                             : "Follow-up Completed"}
                                 </span>
                             </div>
 
                             {status === "Pending" && row.followUpDate && (
-                                <small>
+                                <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <CalendarClock size={12} />
-                                    Available: {formatToDDMMYYYY(row.followUpDate)}
+                                    {followUpType} follow-up available: {formatToDDMMYYYY(row.followUpDate)}
                                 </small>
                             )}
 
                             {status === "Completed" && row.lastFollowUpDate && (
-                                <small>
+                                <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <CalendarClock size={12} />
                                     Completed: {formatToDDMMYYYY(row.lastFollowUpDate)}
                                 </small>
                             )}
                         </div>
-                    )
+                    );
                 },
-            },
+            }
         ]
 
         const handleAddNew = () => {
