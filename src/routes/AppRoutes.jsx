@@ -62,7 +62,6 @@ const AppRoutes = () => {
                 <Route path="/user/survey/:patientId" element={<StepForm />} />
                 <Route path="/user/followup/:patientId" element={<FollowUpForm />} />
                 <Route path="/user/view-followup/:patientId" element={<ViewFollowUpForm />} />
-                <Route path="/user/view-followup/:patientId" element={<ViewFollowUpForm />} />
                 <Route path="/user/followup-6month/:patientId" element={<SixMonthFollowUpForm />} />
               
                 {/* <Route

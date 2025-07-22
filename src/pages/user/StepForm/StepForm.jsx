@@ -198,6 +198,7 @@ const StepForm = () => {
       hairGrowth: "",
       pulsesPalpable: "",
       skinTemperature: "",
+      followUpDuration : "",
       // ulcerPresence: "",
    
       // footImage: "",
@@ -819,6 +820,7 @@ const StepForm = () => {
       "hairGrowth",
       "pulsesPalpable",
       "skinTemperature",
+      "followUpDuration",
 
       // Removed deformityDuration from unconditional required fields
       ...(formData.section3.footDeformities === "yes" ? ["deformityDuration"] : []),
@@ -1258,25 +1260,7 @@ const StepForm = () => {
         if (Object.keys(editedFields.section3).length > 0) await submitStep3(patientIdToUse);
       }
 
-      // Save to local storage and navigate
-      // const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
-      // const updatedRecord = {
-      //   patientId: patientIdToUse,
-      //   patient_name: formData.section1.patient_name,
-      //   formData: formData,
-      //   submissionDate: new Date().toISOString(),
-      //   appointmentDate: new Date().toISOString(),
-      //   status: "completed",
-      //   lastVisit: new Date().toISOString(),
-      //   followUpDate: calculateFollowUpDate(new Date()).toISOString(),
-      //   canEdit: true,
-      // };
-
-     
-      // const updatedRecords = isEditMode
-      //   ? existingRecords.map(record => record.patientId === patientIdToUse ? updatedRecord : record)
-      //   : [updatedRecord, ...existingRecords];
-      // localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
+ 
 
       // Clean up and navigate
       localStorage.removeItem("stepFormData");

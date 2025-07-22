@@ -7,7 +7,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const APP_VERSION = JSON.stringify(Date.now().toString());
 
 export default defineConfig({
-  base: '/dfrifinal/' ,
+  base: '/' ,
   plugins: [
     react(),
     createHtmlPlugin({

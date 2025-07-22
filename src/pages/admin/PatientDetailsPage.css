@@ -246,6 +246,7 @@ font-family: 'Poppins', sans-serif;
     display: flex;
     overflow-x: auto;
     scrollbar-width: none;
+    justify-content: space-around;
     -ms-overflow-style: none;
     gap: 0.5rem;
 }
@@ -258,7 +259,7 @@ font-family: 'Poppins', sans-serif;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1rem 1.5rem;
+    padding: 1rem 0.3rem;
         font-size: 0.875rem;
 font-family: 'Poppins', sans-serif;
     color: #718096;

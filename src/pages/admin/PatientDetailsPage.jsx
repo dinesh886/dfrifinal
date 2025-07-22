@@ -159,6 +159,20 @@ const PatientDetailsPage = () => {
             skinTemperature: "",
         },
     }
+    const [followUp, setFollowUp] = useState({
+        woundHealed: "",
+        healingTime: "",
+        nonHealingReason: "",
+        surgicalIntervention: "",
+        amputationPerformed: "",
+        hospitalVisits: "",
+        hospitalized: "",
+        hospitalStayLength: "",
+        survivalStatus: "",
+        deathDate: "",
+        deathReason: "",
+        activeUlcer: "",
+    })
 
     // Function to determine if a field is a radio/boolean field
     const isRadioField = (field) => {
@@ -459,6 +473,43 @@ const PatientDetailsPage = () => {
         }
     }, [patientId])
 
+
+    // useEffect(() => {
+    //     const fetchFollowUpDetails = async () => {
+    //         try {
+    //             setLoading(true)
+    //             setError(null)
+    //             console.log(`Fetching follow-up data for patient: ${patientId}`)
+
+    //             const response = await apiGet(`/follow-up?patient_id=${patientId}`) // adjust if the backend expects a param or path
+
+    //             console.log("Follow-up API Response:", response)
+
+    //             if (!response || !response.data) {
+    //                 throw new Error("No follow-up data received from server")
+    //             }
+
+    //             const data = Array.isArray(response.data) ? response.data[0] : response.data // assuming you want first record
+    //             if (!data) throw new Error("No matching follow-up record found")
+
+    //             setFollowUp(data)
+    //         } catch (err) {
+    //             console.error("Follow-up Fetch Error:", err)
+    //             setError(err.message || "Failed to fetch follow-up data")
+    //             toast.error(`Follow-up Error: ${err.message || "Failed to fetch data"}`)
+    //         } finally {
+    //             setLoading(false)
+    //         }
+    //     }
+
+    //     if (patientId) {
+    //         fetchFollowUpDetails()
+    //     } else {
+    //         setError("Missing patient ID for follow-up fetch")
+    //         setLoading(false)
+    //         toast.error("Invalid patient ID")
+    //     }
+    // }, [patientId])
     // Function to render status badge
     const renderStatusBadge = (value) => {
         console.log("Rendering badge for value:", value) // Debug log
@@ -600,6 +651,16 @@ const PatientDetailsPage = () => {
                                 </svg>
                             </div>
                             Foot Examination
+                        </button>
+                        <button className={`tab ${activeTab === "Followup" ? "active" : ""}`} onClick={() => setActiveTab("Followup")}>
+                            <div className="tab-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18 20v-8a4 4 0 0 0-4-4H6" />
+                                    <path d="M10 6H6a4 4 0 0 0-4 4v8" />
+                                    <path d="M2 14h20" />
+                                </svg>
+                            </div>
+                          Follow  Up Information
                         </button>
                     </div>
                 </div>
@@ -1326,6 +1387,98 @@ const PatientDetailsPage = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* followup inforamtion Tab */}
+                    {activeTab === "Followup" && (
+                     
+                            <div className="section-grid">
+                                <div className="card">
+                                    <h3 className="card-title">Follow-up Summary</h3>
+                                    <div className="card-content">
+
+                                        {loading && <div className="info-value">Loading follow-up data...</div>}
+                                        {error && <div className="info-value red">{error}</div>}
+
+                                        {!loading && !error && followUp && (
+                                            <>
+                                                <div className="info-row">
+                                                    <div className="info-label">Wound Healed</div>
+                                                    <div className="info-value">{followUp.woundHealed}</div>
+                                                </div>
+
+                                                {followUp.woundHealed === "yes" && (
+                                                    <div className="info-row">
+                                                        <div className="info-label">Healing Time</div>
+                                                        <div className="info-value">{followUp.healingTime}</div>
+                                                    </div>
+                                                )}
+
+                                                {followUp.woundHealed === "no" && (
+                                                    <>
+                                                        <div className="info-row">
+                                                            <div className="info-label">Non-Healing Reason</div>
+                                                            <div className="info-value">{followUp.nonHealingReason}</div>
+                                                        </div>
+                                                        <div className="info-row">
+                                                            <div className="info-label">Surgical Intervention</div>
+                                                            <div className="info-value">{followUp.surgicalIntervention}</div>
+                                                        </div>
+                                                        <div className="info-row">
+                                                            <div className="info-label">Amputation Performed</div>
+                                                            <div className="info-value">{followUp.amputationPerformed}</div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                <div className="info-row">
+                                                    <div className="info-label">Hospital Visits</div>
+                                                    <div className="info-value">{followUp.hospitalVisits}</div>
+                                                </div>
+
+                                                <div className="info-row">
+                                                    <div className="info-label">Hospitalized</div>
+                                                    <div className="info-value">{followUp.hospitalized}</div>
+                                                </div>
+
+                                                {followUp.hospitalized === "yes" && (
+                                                    <div className="info-row">
+                                                        <div className="info-label">Hospital Stay Length</div>
+                                                        <div className="info-value">{followUp.hospitalStayLength}</div>
+                                                    </div>
+                                                )}
+
+                                                <div className="info-row">
+                                                    <div className="info-label">Survival Status</div>
+                                                    <div className="info-value">{followUp.survivalStatus}</div>
+                                                </div>
+
+                                                {followUp.survivalStatus === "death" && (
+                                                    <>
+                                                        <div className="info-row">
+                                                            <div className="info-label">Death Date</div>
+                                                            <div className="info-value">{followUp.deathDate}</div>
+                                                        </div>
+                                                        <div className="info-row">
+                                                            <div className="info-label">Death Reason</div>
+                                                            <div className="info-value">{followUp.deathReason}</div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                <div className="info-row">
+                                                    <div className="info-label">Active Ulcer</div>
+                                                    <div className="info-value">{followUp.activeUlcer}</div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                   
+
+                    
+
+                          )}
                 </div>
             </div>
         )

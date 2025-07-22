@@ -275,7 +275,7 @@ return (
 
       <form onSubmit={handleSubmit} className="medical-add-form">
         <div className="medical-add-section step-form-4">
-          <h2 className="medical-add-section-title">Final Treatment Outcomes (after 6 months)</h2>
+          <h2 className="medical-add-section-title">Final Treatment Outcomes (after 3 months)</h2>
 
           <div className="medical-add-row3">
 

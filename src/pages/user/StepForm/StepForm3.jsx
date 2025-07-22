@@ -827,7 +827,7 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                   />
                   <span className="medical-add-radio-button-label">Warm</span>
                 </label>
-                <label className="medical-add-radio-label">
+                <label className="medical-add-radio-label"> 
                   <input
                     type="radio"
                     name="skinTemperature"
@@ -843,6 +843,39 @@ const StepForm3 = ({formData, handleChange, errors}) => {
                 {errors.skinTemperature && <span className="error-message">{errors.skinTemperature}</span>}
             </div>
           </div>
+          <div className="medical-add-group">
+            <label className="medical-add-label required">Select Follow-up Duration</label>
+            <div className="medical-add-radio-group">
+              <label className="medical-add-radio-label">
+                <input
+                  type="radio"
+                  name="followUpDuration"
+                  value="3-month"
+                  checked={formData.section3.followUpDuration === '3-month'}
+                  onChange={(e) => handleChange(e, 'section3')}
+                  className="medical-add-radio-button"
+                  required
+                />
+                <span className="medical-add-radio-button-label">3 Months</span>
+              </label>
+              <label className="medical-add-radio-label">
+                <input
+                  type="radio"
+                  name="followUpDuration"
+                  value="6-month"
+                  checked={formData.section3.followUpDuration === '6-month'}
+                  onChange={(e) => handleChange(e, 'section3')}
+                  className="medical-add-radio-button"
+                  required
+                />
+                <span className="medical-add-radio-button-label">6 Months</span>
+              </label>
+            </div>
+            {errors.followUpDuration && (
+              <span className="error-message">{errors.followUpDuration}</span>
+            )}
+          </div>
+
         </div>
      
         {/* Foot Image Upload */}

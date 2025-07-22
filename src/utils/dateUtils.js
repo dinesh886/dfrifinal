@@ -51,23 +51,29 @@ export const formatToDDMMYYYY = (dateString) => {
     return String(dateString)
 }
 
-// Check if 6 months passed since a date
-export const isSixMonthsPassed = (dateString) => {
-    if (!dateString) return false;
-    const lastVisit = new Date(dateString);
-    const sixMonthsLater = new Date(lastVisit);
-    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-    return new Date() >= sixMonthsLater;
-};
+// Check if follow-up period has passed
+export const isFollowUpPassed = (dateString, followUpType = "6-month") => {
+    if (!dateString) return false
+    const lastVisit = new Date(dateString)
+    const followUpDate = new Date(lastVisit)
 
-// Calculate follow-up date 6 months after given date datautils.js
-export const calculateFollowUpDate = (dateString) => {
-    if (!dateString) return null;
-    const lastVisit = new Date(dateString);
-    const followUpDate = new Date(lastVisit);
-    followUpDate.setMonth(followUpDate.getMonth() + 6);
-    return followUpDate.toISOString();
-};
+    const monthsToAdd = followUpType === "3-month" ? 3 : 6
+    followUpDate.setMonth(followUpDate.getMonth() + monthsToAdd)
+
+    return new Date() >= followUpDate
+}
+
+// Calculate follow-up date based on type (3-month or 6-month)
+export const calculateFollowUpDate = (dateString, followUpType = "6-month") => {
+    if (!dateString) return null
+    const lastVisit = new Date(dateString)
+    const followUpDate = new Date(lastVisit)
+
+    const monthsToAdd = followUpType === "3-month" ? 3 : 6
+    followUpDate.setMonth(followUpDate.getMonth() + monthsToAdd)
+
+    return followUpDate.toISOString()
+}
 
 // 5-day time logic
 export const is24HoursPassed = (dateString, currentTime = new Date()) => {

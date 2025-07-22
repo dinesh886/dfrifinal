@@ -1,616 +1,643 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate, useParams, useSearchParams } from "react-router-dom" // Changed to react-router-dom
-import FormLayout from "../../../layouts/FormLayout"
-import "../StepForm/StepForm.css" // Assuming you have a CSS file for this form
-import { Send, ArrowLeftToLine } from "lucide-react"
-import { LoadingOutlined } from "@ant-design/icons"
-import { toast } from "react-toastify"
-import { apiPost, apiGet } from "../../../services/api-helper" // Added apiGet
-import { API_BASE_URL } from "../../../config/api"
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import FormLayout from "../../../layouts/FormLayout";
+import "./StepForm.css";
+import { ArrowLeftToLine, ArrowRightToLine } from "lucide-react";
+import { LoadingOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
+import { formatToDDMMYYYY } from "../../../utils/dateUtils";
+import { apiGet, apiPost, apiPut } from "../../../services/api-helper";
 
-// This form is specifically for 6-month follow-ups.
-export default function SixMonthFollowUpForm() {
-    const navigate = useNavigate() // Changed
-    const params = useParams()
-    const [searchParams] = useSearchParams() // Changed
+const SixMonthFollowUpForm = () => {
+    const { patientId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { isUpdate, initialData } = location.state || {};
 
-    const initialDataString = searchParams.get("initialData")
-    const isInitialFollowUp = searchParams.get("isInitialFollowUp") === "true"
-    const isUpdate = searchParams.get("isUpdate") === "true"
-
-    let initialData = null
-    try {
-        if (initialDataString) {
-            initialData = JSON.parse(decodeURIComponent(initialDataString))
-        }
-    } catch (e) {
-        console.error("Error parsing initialData from URL:", e)
-    }
-
-    const [patientId, setPatientId] = useState(params.patientId || initialData?.patientId || "") // Use params.patientId
-    const [patientName, setPatientName] = useState(initialData?.patient_name || "")
     const [formData, setFormData] = useState({
-        followUpDate: "",
-        notes: "",
-        woundHealed: "", // "yes" or "no"
-        healingTime: "", // number (only if woundHealed === "yes")
-        nonHealingReason: "", // string (only if woundHealed === "no")
-        surgicalIntervention: "", // string (only if woundHealed === "no")
-        amputationPerformed: "", // "No", "Minor", "Major" (only if woundHealed === "no")
-        hospitalVisits: "", // number (shown always if woundHealed is selected)
-        hospitalized: "", // "yes" or "no"
-        hospitalStayLength: "", // number (only if hospitalized === "yes")
-        amputationType: "", // "minor" or "major" (only if amputation === "yes")
-        amputationLevel: "", // "below_knee" or "above_knee" (only if amputation === "yes")
-        survivalStatus: "",
-        deathDate: "",
-        deathReason: "",
-        activeUlcer: "", // 'yes' or 'no'
-    })
-    const [isSaving, setIsSaving] = useState(false)
-    const [errors, setErrors] = useState({})
+        section4: {
+            woundHealed: "",             // "yes" or "no"
+            healingTime: "",             // number (only if woundHealed === "yes")
+            nonHealingReason: "",        // string (only if woundHealed === "no")
+            surgicalIntervention: "",    // string (only if woundHealed === "no")
+            amputationPerformed: "",     // "No", "Minor", "Major" (only if woundHealed === "no")
+            hospitalVisits: "",          // number (shown always if woundHealed is selected)
+            hospitalized: "",            // "yes" or "no"
+            hospitalStayLength: "",      // number (only if hospitalized === "yes")
+            amputationType: "",          // "minor" or "major" (only if amputation === "yes")
+            amputationLevel: "",         // "below_knee" or "above_knee" (only if amputation === "yes")
+            survivalStatus: "",
+            deathDate: "",
+            deathReason: "",
+            activeUlcer: '',             // 'yes' or 'no'
+        },
+    });
+
+    const [errors, setErrors] = useState({
+        woundHealed: false,
+        healingTime: false,
+        nonHealingReason: false,
+        surgicalIntervention: false,
+        amputationPerformed: false,
+        hospitalVisits: false,
+        hospitalized: false,
+        hospitalStayLength: false,
+        amputationType: false,
+        amputationLevel: false,
+        survivalStatus: false,
+        deathDate: false,
+        deathReason: false,
+        activeUlcer: false,
+    });
+
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (!patientId) {
-            // Use patientId from params
-            console.error("Missing patientId for SixMonthFollowUpForm.")
-            toast.error("Invalid patient data. Please try again.")
-            navigate("/user/rssdi-save-the-feet-2.0") // Changed
-            return
-        }
-
-        setPatientId(patientId) // Ensure patientId is set from params
-        setPatientName(initialData?.patient_name || "") // Set patient name from initialData
-        if (initialData?.followUpData) {
-            setFormData(initialData.followUpData)
+        if (!initialData?.patientId) {
+            console.error("Missing initialData for FollowUpForm:", initialData);
+            toast.error("Invalid patient data. Please try again.");
+            navigate("/user/rssdi-save-the-feet-2.0");
+            return;
         }
 
         const loadFollowUpData = async () => {
             if (isUpdate && patientId) {
                 try {
-                    console.log("Fetching 6-month follow-up data for patientId:", patientId)
-                    // Assuming a specific endpoint for 6-month follow-up data
-                    const response = await apiGet(`follow-up/6month/${patientId}`)
-                    console.log("6-month Follow-up API Response:", response)
+                    console.log("Fetching follow-up data for patientId:", patientId);
+                    const response = await apiGet(`follow-up/${patientId}`);
+                    console.log("Follow-up API Response:", response);
                     if (response.success && response.data) {
-                        const data = response.data
+                        const data = response.data;
                         setFormData({
-                            woundHealed: data.has_wound_healed?.toLowerCase() || "",
-                            healingTime: data.time_of_healing_days || "",
-                            nonHealingReason: data.non_healing_reason || "",
-                            surgicalIntervention: data.surgical_intervention || "",
-                            amputationPerformed: data.amputation_performed || "",
-                            hospitalVisits: data.hospital_visits || "",
-                            hospitalized: data.hospitalized?.toLowerCase() || "",
-                            hospitalStayLength: data.hospital_stay_length || "",
-                            amputationType: data.amputation_type?.toLowerCase() || "",
-                            amputationLevel: data.amputation_level?.toLowerCase().replace(" ", "_") || "",
-                            survivalStatus: data.survival_status?.toLowerCase() || "",
-                            deathDate: data.date_of_death || "",
-                            deathReason: data.reason_for_death || "",
-                            activeUlcer: data.active_ulcer?.toLowerCase() || "",
-                            followUpDate: data.follow_up_date || "",
-                            notes: data.notes || "",
-                        })
+                            section4: {
+                                amputationPerformed: data.amputation_performed || "",
+                                amputationType: data.amputation_type_specified?.toLowerCase() || "",
+                                amputationLevel: data.amputation_level?.toLowerCase().replace(" ", "_") || "",
+                                woundHealed: data.has_wound_healed?.toLowerCase() || "",
+                                healingTime: data.time_of_healing_days || "",
+                                survivalStatus: data.survival_status?.toLowerCase() || "alive",
+                                deathDate: data.date_of_death || "",
+                                deathReason: data.reason_for_death || "",
+                                hospitalVisits: data.hospital_visits || "",
+                                hospitalized: data.hospitalized?.toLowerCase() || "",
+                                hospitalStayLength: data.hospital_stay_length || "",
+                                activeUlcer: data.active_ulcer?.toLowerCase() || "",
+                            },
+                        });
+                    } else if (initialData?.followUpData) {
+                        setFormData({
+                            section4: {
+                                amputationPerformed: initialData.followUpData.amputationPerformed || "",
+                                amputationType: initialData.followUpData.amputationType || "",
+                                amputationLevel: initialData.followUpData.amputationLevel || "",
+                                woundHealed: initialData.followUpData.woundHealed || "",
+                                healingTime: initialData.followUpData.healingTime || "",
+                                survivalStatus: initialData.followUpData.survivalStatus || "alive",
+                                deathDate: initialData.followUpData.deathDate || "",
+                                deathReason: initialData.followUpData.deathReason || "",
+                                hospitalVisits: initialData.followUpData.hospitalVisits || "",
+                                hospitalized: initialData.followUpData.hospitalized || "",
+                                hospitalStayLength: initialData.followUpData.hospitalStayLength || "",
+                                activeUlcer: initialData.followUpData.activeUlcer || "",
+                            },
+                        });
                     }
                 } catch (error) {
-                    console.error("Error fetching 6-month follow-up data:", error)
-                    toast.error("Failed to load 6-month follow-up data")
+                    console.error("Error fetching follow-up data:", error);
+                    toast.error("Failed to load follow-up data");
                 }
             }
-        }
-        loadFollowUpData()
-    }, [isUpdate, patientId, navigate, initialData]) // Added navigate and initialData to dependencies
+        };
+        loadFollowUpData();
+    }, [isUpdate, patientId, initialData, navigate]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
+    const handleChange = (e, section) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [section]: {
+                ...prev[section],
+                [name]: value,
+            },
+        }));
         if (errors[name]) {
-            setErrors((prev) => {
-                const newErrors = { ...prev }
-                delete newErrors[name]
-                return newErrors
-            })
+            setErrors((prev) => ({
+                ...prev,
+                [name]: false,
+            }));
         }
-    }
+    };
 
     const validateForm = () => {
-        const newErrors = {}
-        if (!formData.followUpDate) newErrors.followUpDate = "Follow-up date is required"
-        if (!formData.notes.trim()) newErrors.notes = "Notes are required"
-        if (!formData.woundHealed) newErrors.woundHealed = "This field is required"
-        if (formData.woundHealed === "yes" && !formData.healingTime) newErrors.healingTime = "Healing Time is required"
-        if (formData.woundHealed === "no" && !formData.nonHealingReason) newErrors.nonHealingReason = "Reason is required"
-        if (formData.woundHealed === "no" && !formData.surgicalIntervention)
-            newErrors.surgicalIntervention = "Surgical intervention is required"
-        if (formData.woundHealed === "no" && !formData.amputationPerformed)
-            newErrors.amputationPerformed = "Amputation performed is required"
-        if (!formData.hospitalVisits) newErrors.hospitalVisits = "No. of hospital visits is required"
-        if (!formData.hospitalized) newErrors.hospitalized = "Hospitalization is required"
-        if (formData.hospitalized === "yes" && !formData.hospitalStayLength)
-            newErrors.hospitalStayLength = "Length of hospital stay is required"
-        if (["Minor", "Major"].includes(formData.amputationPerformed) && !formData.amputationType)
-            newErrors.amputationType = "Amputation type is required"
-        if (["Minor", "Major"].includes(formData.amputationPerformed) && !formData.amputationLevel)
-            newErrors.amputationLevel = "Amputation level is required"
-        if (!formData.survivalStatus) newErrors.survivalStatus = "Survival status is required"
-        if (formData.survivalStatus === "death" && !formData.deathDate) newErrors.deathDate = "Date of death is required"
-        if (formData.survivalStatus === "death" && !formData.deathReason)
-            newErrors.deathReason = "Reason for death is required"
-        if (!formData.activeUlcer) newErrors.activeUlcer = "Is there any new/active ulcer is required"
+        const newErrors = {
+            woundHealed: !formData.section4.woundHealed,
+            healingTime: formData.section4.woundHealed === "yes" && !formData.section4.healingTime,
+            nonHealingReason: formData.section4.woundHealed === "no" && !formData.section4.nonHealingReason,
+            surgicalIntervention: formData.section4.woundHealed === "no" && !formData.section4.surgicalIntervention,
+            amputationPerformed: formData.section4.woundHealed === "no" && !formData.section4.amputationPerformed,
+            amputationType: ["Minor", "Major"].includes(formData.section4.amputationPerformed) && !formData.section4.amputationType,
+            amputationLevel: ["Minor", "Major"].includes(formData.section4.amputationPerformed) && !formData.section4.amputationLevel,
+            survivalStatus: !formData.section4.survivalStatus,
+            deathDate: formData.section4.survivalStatus === "death" && !formData.section4.deathDate,
+            deathReason: formData.section4.survivalStatus === "death" && !formData.section4.deathReason,
+            hospitalized: !formData.section4.hospitalized,
+            hospitalStayLength: formData.section4.hospitalized === "yes" && !formData.section4.hospitalStayLength,
+            hospitalVisits: !formData.section4.hospitalVisits,
+            activeUlcer: !formData.section4.activeUlcer,
+        };
 
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-    }
+        const filteredErrors = Object.keys(newErrors).reduce((acc, key) => {
+            if (key === "healingTime" && formData.section4.woundHealed !== "yes") return acc;
+            if (["nonHealingReason", "surgicalIntervention", "amputationPerformed"].includes(key) && formData.section4.woundHealed !== "no") return acc;
+            if (["amputationType", "amputationLevel"].includes(key) && !["Minor", "Major"].includes(formData.section4.amputationPerformed)) return acc;
+            if (["deathDate", "deathReason"].includes(key) && formData.section4.survivalStatus !== "death") return acc;
+            if (key === "hospitalStayLength" && formData.section4.hospitalized !== "yes") return acc;
+
+            acc[key] = newErrors[key];
+            return acc;
+        }, {});
+
+        setErrors(filteredErrors);
+        return !Object.values(filteredErrors).some((error) => error);
+    };
+
+    const scrollToFirstError = () => {
+        const firstErrorField = Object.keys(errors).find((key) => errors[key]);
+        if (firstErrorField) {
+            const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+            if (errorElement) {
+                errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                errorElement.focus();
+            }
+        }
+    };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (isSaving) return
-
+        e.preventDefault();
         if (!validateForm()) {
-            toast.error("Please fill all required fields.")
-            return
+            scrollToFirstError();
+            toast.error("Please fill in all required fields");
+            return;
         }
 
-        setIsSaving(true)
+        if (isSaving) return;
+
+        setIsSaving(true);
         try {
+            const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
+            const now = new Date();
             const payload = {
                 patient_id: patientId,
-                follow_up_date: formData.followUpDate,
-                notes: formData.notes,
-                wound_healed: formData.woundHealed === "yes" ? "Yes" : "No",
-                healing_time:
-                    formData.woundHealed === "yes" && formData.healingTime ? Number.parseInt(formData.healingTime) : null,
-                non_healing_reason: formData.woundHealed === "no" ? formData.nonHealingReason : null,
-                surgical_intervention: formData.woundHealed === "no" ? formData.surgicalIntervention : null,
-                amputation_performed: formData.woundHealed === "no" ? formData.amputationPerformed : "No",
-                hospital_visits: formData.hospitalVisits ? Number.parseInt(formData.hospitalVisits) : null,
-                hospitalized: formData.hospitalized === "yes" ? "Yes" : "No",
-                hospital_stay_length:
-                    formData.hospitalized === "yes" && formData.hospitalStayLength
-                        ? Number.parseInt(formData.hospitalStayLength)
-                        : null,
-                amputation_type: ["Minor", "Major"].includes(formData.amputationPerformed)
-                    ? formData.amputationType.charAt(0).toUpperCase() + formData.amputationType.slice(1)
+                doctor_id: currentUser?.id || initialData?.doctor_id || "",
+                wound_debridement_performed: formData.section4.woundDebridement === "yes" ? "Yes" : "No",
+                amputation_performed: formData.section4.amputationPerformed || "No",
+                amputation_type_specified: formData.section4.amputationType
+                    ? formData.section4.amputationType.charAt(0).toUpperCase() + formData.section4.amputationType.slice(1)
                     : null,
-                amputation_level: ["Minor", "Major"].includes(formData.amputationPerformed)
-                    ? formData.amputationLevel.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                amputation_level: formData.section4.amputationLevel
+                    ? formData.section4.amputationLevel.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
                     : null,
-                survival_status: formData.survivalStatus.charAt(0).toUpperCase() + formData.survivalStatus.slice(1),
-                date_of_death: formData.survivalStatus === "death" ? formData.deathDate : null,
-                reason_for_death: formData.survivalStatus === "death" ? formData.deathReason : null,
-                active_ulcer: formData.activeUlcer === "yes" ? "Yes" : "No",
-                follow_up_type: "6-month", // Explicitly set for 6-month follow-up
+                has_wound_healed: formData.section4.woundHealed === "yes" ? "Yes" : "No",
+                time_of_healing_days: formData.section4.healingTime ? Number.parseInt(formData.section4.healingTime) : null,
+                presence_of_recurrent_ulcer: formData.section4.recurrentUlcer === "yes" ? "Yes" : "No",
+                survival_status: formData.section4.survivalStatus.charAt(0).toUpperCase() + formData.section4.survivalStatus.slice(1),
+                date_of_death: formData.section4.deathDate || null,
+                reason_for_death: formData.section4.deathReason || null,
+                follow_up_date: now.toISOString(),
+            };
+
+            console.log("Submitting follow-up payload:", JSON.stringify(payload, null, 2));
+            const response = isUpdate ? await apiPut(`follow-up/${patientId}`, payload) : await apiPost("follow-up", payload);
+            console.log("Follow-up API Response:", JSON.stringify(response, null, 2));
+
+            if (!response.success) {
+                throw new Error(response.message || (response.errors ? JSON.stringify(response.errors) : "Failed to submit follow-up"));
             }
 
-            const url = isUpdate
-                ? `${API_BASE_URL}/follow-up/6month/update/${patientId}`
-                : `${API_BASE_URL}/follow-up/6month/submit`
+            const patientRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
+            const nextFollowUpDate = new Date();
+            nextFollowUpDate.setMinutes(nextFollowUpDate.getMinutes() + 5);
 
-            const response = await apiPost(url, payload)
+            const updatedRecords = patientRecords.map((record) => {
+                if (record.patientId === patientId) {
+                    return {
+                        ...record,
+                        follow_up_status: response.data.follow_up_status || "Completed",
+                        last_follow_up_date: response.data.last_follow_up_date || now.toISOString(),
+                        follow_up_date: nextFollowUpDate.toISOString(),
+                        followUpData: {
+                            ...formData.section4,
+                            follow_up_date: now.toISOString(),
+                        },
+                        ...(location.state?.isInitialFollowUp && {
+                            initialFollowUpCompleted: now.toISOString(),
+                        }),
+                    };
+                }
+                return record;
+            });
+            localStorage.setItem("patientRecords", JSON.stringify(updatedRecords));
 
-            if (response.success) {
-                toast.success(`6-Month Follow-up for ${patientName} submitted successfully!`)
-
-                // Update local storage patient record
-                const existingRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]")
-                const updatedRecords = existingRecords.map((record) => {
-                    if (record.patientId === patientId) {
-                        return {
-                            ...record,
-                            follow_up_status: "Completed",
-                            last_follow_up_date: new Date().toISOString(),
-                            followUpData: formData, // Store the submitted follow-up data
-                        }
-                    }
-                    return record
-                })
-                localStorage.setItem("patientRecords", JSON.stringify(updatedRecords))
-
-                navigate(
-                    // Changed
-                    `/user/rssdi-save-the-feet-2.0?${new URLSearchParams({
-                        showToast: true,
-                        toastMessage: `6-Month Follow-up for ${patientName} completed!`,
-                        refresh: true,
-                    }).toString()}`,
-                )
-            } else {
-                throw new Error(response.message || "Failed to submit follow-up.")
-            }
+            toast.success(location.state?.isInitialFollowUp ? "Initial follow-up completed!" : "Follow-up updated successfully!");
+            navigate("/user/rssdi-save-the-feet-2.0", {
+                state: {
+                    showToast: true,
+                    toastMessage: "Follow-up data saved successfully",
+                    refresh: true,
+                },
+                replace: true,
+            });
         } catch (error) {
-            console.error("Error submitting follow-up:", error)
-            toast.error(error.message || "Failed to submit follow-up. Please try again.")
+            console.error("Error saving follow-up:", error);
+            toast.error(`Failed to save follow-up: ${error.message}`);
         } finally {
-            setIsSaving(false)
+            setIsSaving(false);
         }
-    }
-
-    const handleBackToDashboard = () => {
-        navigate(-1) // Changed
-    }
+    };
 
     return (
         <FormLayout>
-            <div className="follow-up-form-container">
+            <div className="medical-add-container">
                 <div className="form-header">
-                    <h2 className="form-title">6-Month Follow-up Assessment for {patientName}</h2>
-                    <button
-                        type="button"
-                        onClick={handleBackToDashboard}
-                        className="dashboard-btn"
-                        aria-label="Go back to dashboard"
-                    >
-                        <ArrowLeftToLine size={18} />
-                        <span>Dashboard</span>
-                    </button>
+                    <h2 className="medical-add-section-title">{isUpdate ? "Update" : "Add"}  Follow-up Assessment</h2>
+                    <div>
+                        {initialData?.lastFollowUpDate && (
+                            <small className="last-followup">Last follow-up: {formatToDDMMYYYY(initialData.lastFollowUpDate)}</small>
+                        )}
+                        <button type="button" onClick={() => navigate(-1)} className="dashboard-btn">
+                            <ArrowLeftToLine size={18} />
+                            <span>Back</span>
+                        </button>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="form-content">
-                    <div className="form-group">
-                        <label htmlFor="followUpDate">Follow-up Date:</label>
-                        <input
-                            type="date"
-                            id="followUpDate"
-                            name="followUpDate"
-                            value={formData.followUpDate}
-                            onChange={handleChange}
-                            className={errors.followUpDate ? "input-error" : ""}
-                            disabled={isSaving}
-                        />
-                        {errors.followUpDate && <p className="error-message">{errors.followUpDate}</p>}
-                    </div>
+                <form onSubmit={handleSubmit} className="medical-add-form">
+                    <div className="medical-add-section step-form-4">
+                        <h2 className="medical-add-section-title">Final Treatment Outcomes (after 6 months)</h2>
 
-                    <div className="form-group">
-                        <label htmlFor="notes">Notes:</label>
-                        <textarea
-                            id="notes"
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            className={errors.notes ? "input-error" : ""}
-                            rows="5"
-                            disabled={isSaving}
-                        ></textarea>
-                        {errors.notes && <p className="error-message">{errors.notes}</p>}
-                    </div>
+                        <div className="medical-add-row3">
 
-                    <div className="form-group">
-                        <label htmlFor="woundHealed">Has the wound healed?</label>
-                        <div className="radio-group">
-                            <label>
-                                <input
-                                    type="radio"
-                                    id="woundHealedYes"
-                                    name="woundHealed"
-                                    value="yes"
-                                    checked={formData.woundHealed === "yes"}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                />
-                                Yes
-                            </label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    id="woundHealedNo"
-                                    name="woundHealed"
-                                    value="no"
-                                    checked={formData.woundHealed === "no"}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                />
-                                No
-                            </label>
-                        </div>
-                        {errors.woundHealed && <p className="error-message">{errors.woundHealed}</p>}
-                    </div>
 
-                    {formData.woundHealed === "yes" && (
-                        <div className="form-group">
-                            <label htmlFor="healingTime">Healing Time (in days):</label>
-                            <input
-                                type="number"
-                                id="healingTime"
-                                name="healingTime"
-                                value={formData.healingTime}
-                                onChange={handleChange}
-                                className={errors.healingTime ? "input-error" : ""}
-                                disabled={isSaving}
-                            />
-                            {errors.healingTime && <p className="error-message">{errors.healingTime}</p>}
-                        </div>
-                    )}
 
-                    {formData.woundHealed === "no" && (
-                        <>
-                            <div className="form-group">
-                                <label htmlFor="nonHealingReason">Reason:</label>
-                                <div className="radio-group">
-                                    {["Loss of follow up", "Non compliance", "Healed and reoccurrence"].map((reason) => (
-                                        <label key={reason}>
-                                            <input
-                                                type="radio"
-                                                id={`nonHealingReason${reason}`}
-                                                name="nonHealingReason"
-                                                value={reason}
-                                                checked={formData.nonHealingReason === reason}
-                                                onChange={handleChange}
-                                                disabled={isSaving}
-                                            />
-                                            {reason}
-                                        </label>
-                                    ))}
+                            <div className="col-md-4 medical-add-group">
+                                <label className="medical-add-label required">Has the wound healed?</label>
+                                <div className="medical-add-radio-group">
+                                    <label className="medical-add-radio-label">
+                                        <input
+                                            type="radio"
+                                            name="woundHealed"
+                                            value="yes"
+                                            checked={formData.section4.woundHealed === 'yes'}
+                                            onChange={(e) => handleChange(e, 'section4')}
+                                            className="medical-add-radio-button"
+                                            required
+                                        />
+                                        <span className="medical-add-radio-button-label">Yes</span>
+                                    </label>
+                                    <label className="medical-add-radio-label">
+                                        <input
+                                            type="radio"
+                                            name="woundHealed"
+                                            value="no"
+                                            checked={formData.section4.woundHealed === 'no'}
+                                            onChange={(e) => handleChange(e, 'section4')}
+                                            className="medical-add-radio-button"
+                                            required
+                                        />
+                                        <span className="medical-add-radio-button-label">No</span>
+                                    </label>
                                 </div>
-                                {errors.nonHealingReason && <p className="error-message">{errors.nonHealingReason}</p>}
+                                {errors.woundHealed && <span className="error-message">This field is required</span>}
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="surgicalIntervention">Surgical intervention performed:</label>
-                                <div className="radio-group">
-                                    {["Callus excision", "Sequestectomy", "Incision and drainage", "Wound debridement", "Others"].map(
-                                        (option) => (
-                                            <label key={option}>
-                                                <input
-                                                    type="radio"
-                                                    id={`surgicalIntervention${option}`}
-                                                    name="surgicalIntervention"
-                                                    value={option}
-                                                    checked={formData.surgicalIntervention === option}
-                                                    onChange={handleChange}
-                                                    disabled={isSaving}
-                                                />
-                                                {option}
-                                            </label>
-                                        ),
+                            {/* Show fields for both YES and NO selections */}
+                            {['yes', 'no'].includes(formData.section4.woundHealed) && (
+                                <>
+                                    {/* Healing Time (ONLY if wound healed = yes) */}
+                                    {formData.section4.woundHealed === 'yes' && (
+                                        <div className="col-md-4 medical-add-group">
+                                            <label className="medical-add-label required">Healing Time (in days)</label>
+                                            <input
+                                                type="number"
+                                                name="healingTime"
+                                                className="form-control"
+                                                value={formData.section4.healingTime || ''}
+                                                onChange={(e) => handleChange(e, 'section4')}
+                                                required
+                                            />
+                                        </div>
                                     )}
-                                </div>
-                                {errors.surgicalIntervention && <p className="error-message">{errors.surgicalIntervention}</p>}
-                            </div>
 
-                            <div className="form-group">
-                                <label htmlFor="amputationPerformed">Amputation performed?</label>
-                                <div className="radio-group">
-                                    {["No", "Minor", "Major"].map((type) => (
-                                        <label key={type}>
+
+
+
+                                    {/* Show extra 3 fields ONLY IF "no" selected */}
+                                    {formData.section4.woundHealed === 'no' && (
+                                        <>
+                                            {/* Reason */}
+                                            <div className="col-md-4 medical-add-group">
+                                                <label className="medical-add-label required">Reason</label>
+                                                <div className="medical-add-radio-group">
+                                                    {['Loss of follow up', 'Non compliance', 'Healed and reoccurrence'].map((reason) => (
+                                                        <label key={reason} className="medical-add-radio-label">
+                                                            <input
+                                                                type="radio"
+                                                                name="nonHealingReason"
+                                                                value={reason}
+                                                                checked={formData.section4.nonHealingReason === reason}
+                                                                onChange={(e) => handleChange(e, 'section4')}
+                                                                className="medical-add-radio-button"
+                                                                required
+                                                            />
+                                                            <span className="medical-add-radio-button-label">{reason}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Surgical Intervention */}
+                                            <div className="col-md-4 medical-add-group">
+                                                <label className="medical-add-label required">Surgical intervention performed</label>
+                                                <div className="medical-add-radio-group">
+                                                    {['Callus excision', 'Sequestectomy', 'Incision and drainage', 'Wound debridement', 'Others'].map((option) => (
+                                                        <label key={option} className="medical-add-radio-label">
+                                                            <input
+                                                                type="radio"
+                                                                name="surgicalIntervention"
+                                                                value={option}
+                                                                checked={formData.section4.surgicalIntervention === option}
+                                                                onChange={(e) => handleChange(e, 'section4')}
+                                                                className="medical-add-radio-button"
+                                                                required
+                                                            />
+                                                            <span className="medical-add-radio-button-label">{option}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Amputation */}
+                                            <div className="col-md-4 medical-add-group">
+                                                <label className="medical-add-label required">Amputation performed?</label>
+                                                <div className="medical-add-radio-group">
+                                                    {['No', 'Minor', 'Major'].map((type) => (
+                                                        <label key={type} className="medical-add-radio-label">
+                                                            <input
+                                                                type="radio"
+                                                                name="amputationPerformed"
+                                                                value={type}
+                                                                checked={formData.section4.amputationPerformed === type}
+                                                                onChange={(e) => handleChange(e, 'section4')}
+                                                                className="medical-add-radio-button"
+                                                                required
+                                                            />
+                                                            <span className="medical-add-radio-button-label">{type}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+
+                                    {/* No. of hospital visits */}
+                                    <div className="col-md-4 medical-add-group">
+                                        <label className="medical-add-label required">No. of hospital visits</label>
+                                        <input
+                                            type="number"
+                                            name="hospitalVisits"
+                                            className="form-control"
+                                            value={formData.section4.hospitalVisits || ''}
+                                            onChange={(e) => handleChange(e, 'section4')}
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Hospitalization */}
+                                    <div className="col-md-4 medical-add-group">
+                                        <label className="medical-add-label required">Hospitalization?</label>
+                                        <div className="medical-add-radio-group">
+                                            {['yes', 'no'].map((value) => (
+                                                <label key={value} className="medical-add-radio-label">
+                                                    <input
+                                                        type="radio"
+                                                        name="hospitalized"
+                                                        value={value}
+                                                        checked={formData.section4.hospitalized === value}
+                                                        onChange={(e) => handleChange(e, 'section4')}
+                                                        className="medical-add-radio-button"
+                                                        required
+                                                    />
+                                                    <span className="medical-add-radio-button-label">
+                                                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                        {errors.hospitalized && <span className="error-message">This field is required</span>}
+                                    </div>
+
+                                    {/* Length of stay — only if hospitalized = yes */}
+                                    {formData.section4.hospitalized === 'yes' && (
+                                        <div className="col-md-4 medical-add-group">
+                                            <label className="medical-add-label required">Length of hospital stay (in days)</label>
                                             <input
-                                                type="radio"
-                                                id={`amputationPerformed${type}`}
-                                                name="amputationPerformed"
-                                                value={type}
-                                                checked={formData.amputationPerformed === type}
-                                                onChange={handleChange}
-                                                disabled={isSaving}
+                                                type="number"
+                                                name="hospitalStayLength"
+                                                className="form-control"
+                                                value={formData.section4.hospitalStayLength || ''}
+                                                onChange={(e) => handleChange(e, 'section4')}
+                                                required={formData.section4.hospitalized === 'yes'}
                                             />
-                                            {type}
-                                        </label>
-                                    ))}
-                                </div>
-                                {errors.amputationPerformed && <p className="error-message">{errors.amputationPerformed}</p>}
-                            </div>
-                        </>
-                    )}
 
-                    <div className="form-group">
-                        <label htmlFor="hospitalVisits">No. of hospital visits:</label>
-                        <input
-                            type="number"
-                            id="hospitalVisits"
-                            name="hospitalVisits"
-                            value={formData.hospitalVisits}
-                            onChange={handleChange}
-                            className={errors.hospitalVisits ? "input-error" : ""}
-                            disabled={isSaving}
-                        />
-                        {errors.hospitalVisits && <p className="error-message">{errors.hospitalVisits}</p>}
-                    </div>
+                                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="hospitalized">Hospitalization?</label>
-                        <div className="radio-group">
-                            {["yes", "no"].map((value) => (
-                                <label key={value}>
-                                    <input
-                                        type="radio"
-                                        id={`hospitalized${value}`}
-                                        name="hospitalized"
-                                        value={value}
-                                        checked={formData.hospitalized === value}
-                                        onChange={handleChange}
-                                        disabled={isSaving}
-                                    />
-                                    {value.charAt(0).toUpperCase() + value.slice(1)}
-                                </label>
-                            ))}
-                        </div>
-                        {errors.hospitalized && <p className="error-message">{errors.hospitalized}</p>}
-                    </div>
+                                    )}
 
-                    {formData.hospitalized === "yes" && (
-                        <div className="form-group">
-                            <label htmlFor="hospitalStayLength">Length of hospital stay (in days):</label>
-                            <input
-                                type="number"
-                                id="hospitalStayLength"
-                                name="hospitalStayLength"
-                                value={formData.hospitalStayLength}
-                                onChange={handleChange}
-                                className={errors.hospitalStayLength ? "input-error" : ""}
-                                disabled={isSaving}
-                            />
-                            {errors.hospitalStayLength && <p className="error-message">{errors.hospitalStayLength}</p>}
-                        </div>
-                    )}
-
-                    {["Minor", "Major"].includes(formData.amputationPerformed) && (
-                        <>
-                            <div className="form-group">
-                                <label htmlFor="amputationType">Amputation type:</label>
-                                <div className="radio-group">
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="amputationTypeMinor"
-                                            name="amputationType"
-                                            value="minor"
-                                            checked={formData.amputationType === "minor"}
-                                            onChange={handleChange}
-                                            disabled={isSaving}
-                                        />
-                                        Minor
-                                    </label>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="amputationTypeMajor"
-                                            name="amputationType"
-                                            value="major"
-                                            checked={formData.amputationType === "major"}
-                                            onChange={handleChange}
-                                            disabled={isSaving}
-                                        />
-                                        Major
-                                    </label>
-                                </div>
-                                {errors.amputationType && <p className="error-message">{errors.amputationType}</p>}
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="amputationLevel">Amputation level:</label>
-                                <div className="radio-group">
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="amputationLevelBelowKnee"
-                                            name="amputationLevel"
-                                            value="below_knee"
-                                            checked={formData.amputationLevel === "below_knee"}
-                                            onChange={handleChange}
-                                            disabled={isSaving}
-                                        />
-                                        Below knee
-                                    </label>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="amputationLevelAboveKnee"
-                                            name="amputationLevel"
-                                            value="above_knee"
-                                            checked={formData.amputationLevel === "above_knee"}
-                                            onChange={handleChange}
-                                            disabled={isSaving}
-                                        />
-                                        Above knee
-                                    </label>
-                                </div>
-                                {errors.amputationLevel && <p className="error-message">{errors.amputationLevel}</p>}
-                            </div>
-                        </>
-                    )}
-
-                    <div className="form-group">
-                        <label htmlFor="survivalStatus">Survival status:</label>
-                        <div className="radio-group">
-                            <label>
-                                <input
-                                    type="radio"
-                                    id="survivalStatusAlive"
-                                    name="survivalStatus"
-                                    value="alive"
-                                    checked={formData.survivalStatus === "alive"}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                />
-                                Alive
-                            </label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    id="survivalStatusDeath"
-                                    name="survivalStatus"
-                                    value="death"
-                                    checked={formData.survivalStatus === "death"}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                />
-                                Death
-                            </label>
-                        </div>
-                        {errors.survivalStatus && <p className="error-message">{errors.survivalStatus}</p>}
-                    </div>
-
-                    {formData.survivalStatus === "death" && (
-                        <>
-                            <div className="form-group">
-                                <label htmlFor="deathDate">Date of death:</label>
-                                <input
-                                    type="date"
-                                    id="deathDate"
-                                    name="deathDate"
-                                    value={formData.deathDate}
-                                    onChange={handleChange}
-                                    className={errors.deathDate ? "input-error" : ""}
-                                    disabled={isSaving}
-                                />
-                                {errors.deathDate && <p className="error-message">{errors.deathDate}</p>}
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="deathReason">Reason for death:</label>
-                                <textarea
-                                    id="deathReason"
-                                    name="deathReason"
-                                    value={formData.deathReason}
-                                    onChange={handleChange}
-                                    className={errors.deathReason ? "input-error" : ""}
-                                    rows="3"
-                                    disabled={isSaving}
-                                ></textarea>
-                                {errors.deathReason && <p className="error-message">{errors.deathReason}</p>}
-                            </div>
-                        </>
-                    )}
-
-                    <div className="form-group">
-                        <label htmlFor="activeUlcer">Is there any new/active ulcer?</label>
-                        <div className="radio-group">
-                            {["yes", "no"].map((value) => (
-                                <label key={value}>
-                                    <input
-                                        type="radio"
-                                        id={`activeUlcer${value}`}
-                                        name="activeUlcer"
-                                        value={value}
-                                        checked={formData.activeUlcer === value}
-                                        onChange={handleChange}
-                                        disabled={isSaving}
-                                    />
-                                    {value.charAt(0).toUpperCase() + value.slice(1)}
-                                </label>
-                            ))}
-                        </div>
-                        {errors.activeUlcer && <p className="error-message">{errors.activeUlcer}</p>}
-                    </div>
-
-                    <div className="form-actions">
-                        <button type="submit" className="submit-btn" disabled={isSaving}>
-                            {isSaving ? (
-                                <>
-                                    <LoadingOutlined style={{ marginRight: 8 }} />
-                                    <span>Submitting...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Send size={18} />
-                                    <span>Submit 6-Month Follow-up</span>
                                 </>
                             )}
-                        </button>
+
+
+
+
+
+                        </div>
+
+                        {['Minor', 'Major'].includes(formData.section4.amputationPerformed) && (
+                            <div className="medical-add-row3 ">
+                                <div className="col-md-6 medical-add-group">
+                                    <label className="medical-add-label required">Amputation type</label>
+                                    <div className={`medical-add-radio-group ${errors.amputationType ? "error" : ""}`}>
+                                        <label className="medical-add-radio-label">
+                                            <input
+                                                type="radio"
+                                                name="amputationType"
+                                                value="minor"
+                                                checked={formData.section4.amputationType === "minor"}
+                                                onChange={(e) => handleChange(e, "section4")}
+                                                className="medical-add-radio-button"
+                                            />
+                                            <span className="medical-add-radio-button-label">Minor</span>
+                                        </label>
+                                        <label className="medical-add-radio-label">
+                                            <input
+                                                type="radio"
+                                                name="amputationType"
+                                                value="major"
+                                                checked={formData.section4.amputationType === "major"}
+                                                onChange={(e) => handleChange(e, "section4")}
+                                                className="medical-add-radio-button"
+                                            />
+                                            <span className="medical-add-radio-button-label">Major</span>
+                                        </label>
+                                    </div>
+                                    {errors.amputationType && <span className="error-message">This field is required</span>}
+                                </div>
+
+                                <div className="col-md-6 medical-add-group">
+                                    <label className="medical-add-label required">Amputation level</label>
+                                    <div className={`medical-add-radio-group ${errors.amputationLevel ? "error" : ""}`}>
+                                        <label className="medical-add-radio-label">
+                                            <input
+                                                type="radio"
+                                                name="amputationLevel"
+                                                value="below_knee"
+                                                checked={formData.section4.amputationLevel === "below_knee"}
+                                                onChange={(e) => handleChange(e, "section4")}
+                                                className="medical-add-radio-button"
+                                            />
+                                            <span className="medical-add-radio-button-label">Below knee</span>
+                                        </label>
+                                        <label className="medical-add-radio-label">
+                                            <input
+                                                type="radio"
+                                                name="amputationLevel"
+                                                value="above_knee"
+                                                checked={formData.section4.amputationLevel === "above_knee"}
+                                                onChange={(e) => handleChange(e, "section4")}
+                                                className="medical-add-radio-button"
+                                            />
+                                            <span className="medical-add-radio-button-label">Above knee</span>
+                                        </label>
+                                    </div>
+                                    {errors.amputationLevel && <span className="error-message">This field is required</span>}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="col-md-6 medical-add-group">
+                            <label className="required" style={{ minWidth: "350px" }}>
+                                Survival status
+                            </label>
+                            <div className={`medical-add-radio-group ${errors.survivalStatus ? "error" : ""}`}>
+                                <label className="medical-add-radio-label">
+                                    <input
+                                        type="radio"
+                                        name="survivalStatus"
+                                        value="alive"
+                                        checked={formData.section4.survivalStatus === "alive"}
+                                        onChange={(e) => handleChange(e, "section4")}
+                                        className="medical-add-radio-button"
+                                    />
+                                    <span className="medical-add-radio-button-label">Alive</span>
+                                </label>
+                                <label className="medical-add-radio-label">
+                                    <input
+                                        type="radio"
+                                        name="survivalStatus"
+                                        value="death"
+                                        checked={formData.section4.survivalStatus === "death"}
+                                        onChange={(e) => handleChange(e, "section4")}
+                                        className="medical-add-radio-button"
+                                    />
+                                    <span className="medical-add-radio-button-label">Death</span>
+                                </label>
+                            </div>
+                            {errors.survivalStatus && <span className="error-message">This field is required</span>}
+
+
+
+                            {formData.section4.survivalStatus === "death" && (
+                                <div className="medical-add-row">
+                                    <div className="col-md-6 medical-add-group">
+                                        <label className="required" style={{ minWidth: "350px" }}>
+                                            Date of death
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="deathDate"
+                                            value={formData.section4.deathDate}
+                                            onChange={(e) => handleChange(e, "section4")}
+                                            className={`medical-add-input ${errors.deathDate ? "error" : ""}`}
+                                            onFocus={(e) => e.target.showPicker && e.target.showPicker()}
+                                        />
+                                        {errors.deathDate && <span className="error-message">This field is required</span>}
+                                    </div>
+                                    <div className="col-md-6 medical-add-group">
+                                        <label className="required" style={{ minWidth: "350px" }}>
+                                            Reason for death
+                                        </label>
+                                        <textarea
+                                            name="deathReason"
+                                            value={formData.section4.deathReason}
+                                            onChange={(e) => handleChange(e, "section4")}
+                                            className={`medical-add-input ${errors.deathReason ? "error" : ""}`}
+                                            placeholder="Enter reason for death"
+                                        />
+                                        {errors.deathReason && <span className="error-message">This field is required</span>}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+
+
+                        <div className="col-md-4 medical-add-group mt">
+                            <label className="medical-add-label required">Is there any new/active ulcer?</label>
+                            <div className="medical-add-radio-group">
+                                {['yes', 'no'].map((value) => (
+                                    <label key={value} className="medical-add-radio-label">
+                                        <input
+                                            type="radio"
+                                            name="activeUlcer"
+                                            value={value}
+                                            checked={formData.section4.activeUlcer === value}
+                                            onChange={(e) => handleChange(e, 'section4')}
+                                            className="medical-add-radio-button"
+                                            required
+                                        />
+                                        <span className="medical-add-radio-button-label"> {value.charAt(0).toUpperCase() + value.slice(1)}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {errors.activeUlcer && <span className="error-message">This field is required</span>}
+                        </div>
+                    </div>
+
+
+                    <div className="step-form-actions followupformaction">
+                        <div className="action-buttons followup-submit">
+                            <button type="submit" className="submit-btn" disabled={isSaving}>
+                                {isSaving ? (
+                                    <>
+                                        <LoadingOutlined style={{ marginRight: 8 }} />
+                                        <span>Submitting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ArrowRightToLine size={18} />
+                                        <span>Submit Follow-up</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </FormLayout>
-    )
+    );
 }
+
+export default SixMonthFollowUpForm

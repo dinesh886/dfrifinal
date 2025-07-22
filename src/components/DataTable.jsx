@@ -23,6 +23,11 @@ import { apiGet } from "../services/api-helper"; // Ensure this is available
 import { handleExport } from "../utils/exportPatients";
 import { apiRequest } from "../services/api-helper"; // Added to imports
 import { Navigate } from "react-router-dom";
+import { Tooltip } from "antd";
+
+
+
+
 const DataTable = ({
     data = [],
     columns = [],
@@ -1066,7 +1071,9 @@ const DataTable = ({
                             ) : (
                                 <>
                                     <Download className="btn-icon" />
+                                <Tooltip title="Download All Patients Data ">
                                     <span className="btn-text">Excel Download</span>
+                                    </Tooltip>
                                 </>
                             )}
                         </a>

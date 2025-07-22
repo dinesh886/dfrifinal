@@ -1,183 +1,159 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import UserLayout from "../../layouts/UserLayout";
-import DataTable from "../../components/DataTable";
-import { formatToDDMMYYYY, is24HoursPassed, calculateRemainingTime } from "../../utils/dateUtils";
-import "./UserDashboard.css";
-import { FilePenLine, CalendarClock, Lock } from "lucide-react";
-import { toast } from "react-toastify";
-import UploadPopup from "../../components/UploadPopup";
-import { apiGet } from "../../services/api-helper";
-import MessageBanner from "../../components/MessageBanner/MessageBanner";
-import { FaSync } from "react-icons/fa";
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
+import UserLayout from "../../layouts/UserLayout"
+import DataTable from "../../components/DataTable"
+import { formatToDDMMYYYY, is24HoursPassed, calculateRemainingTime } from "../../utils/dateUtils"
+import "./UserDashboard.css"
+import { FilePenLine, CalendarClock, Lock } from "lucide-react"
+import { toast } from "react-toastify"
+import UploadPopup from "../../components/UploadPopup"
+import { apiGet } from "../../services/api-helper"
+import MessageBanner from "../../components/MessageBanner/MessageBanner"
+import { FaSync } from "react-icons/fa"
+
 
 const UserDashboard = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [uploadedFiles, setUploadedFiles] = useState([]);
-    const [doctorData, setDoctorData] = useState([]);
-    const [showUploadPopup, setShowUploadPopup] = useState(false);
-    const [currentPatient, setCurrentPatient] = useState(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const [formData, setFormData] = useState(null);
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const location = useLocation()
+    const navigate = useNavigate()
+    const [uploadedFiles, setUploadedFiles] = useState([])
+    const [doctorData, setDoctorData] = useState([])
+    const [showUploadPopup, setShowUploadPopup] = useState(false)
+    const [currentPatient, setCurrentPatient] = useState(null)
+    const [isSaving, setIsSaving] = useState(false)
+    const [formData, setFormData] = useState(null)
+    const [currentTime, setCurrentTime] = useState(new Date())
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
+            setCurrentTime(new Date())
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
         if (location.state?.refresh) {
-            loadPatientRecords();
+            loadPatientRecords()
         }
-    }, [location.state]);
+    }, [location.state])
 
     useEffect(() => {
         if (!location.state?.isUpdate) {
-            const saved = localStorage.getItem("stepFormData");
+            const saved = localStorage.getItem("stepFormData")
             if (saved) {
                 try {
-                    const parsedData = JSON.parse(saved);
+                    const parsedData = JSON.parse(saved)
                     if (parsedData.section1.consentForm) {
-                        parsedData.section1.consentForm = null;
-                        parsedData.section1.consentFormPreview = null;
+                        parsedData.section1.consentForm = null
+                        parsedData.section1.consentFormPreview = null
                     }
-                    setFormData(parsedData);
+                    setFormData(parsedData)
                 } catch (error) {
-                    console.error("Error parsing saved form data:", error);
+                    console.error("Error parsing saved form data:", error)
                 }
             }
         }
 
         if (location.state?.showToast) {
-            toast.success(location.state.toastMessage);
-            window.history.replaceState({}, document.title);
+            toast.success(location.state.toastMessage)
+            window.history.replaceState({}, document.title)
         }
 
-        window.scrollTo(0, 0);
-    }, [location]);
+        window.scrollTo(0, 0)
+    }, [location])
 
     const normalizeYesNo = (val) => {
-        if (val === null || val === undefined) return "";
-        const strVal = String(val).toLowerCase();
+        if (val === null || val === undefined) return ""
+        const strVal = String(val).toLowerCase()
         if (strVal === "yes" || strVal === "1" || strVal === "true" || val === 1 || val === true) {
-            return "yes";
+            return "yes"
         }
         if (strVal === "no" || strVal === "0" || strVal === "false" || val === 0 || val === false) {
-            return "no";
+            return "no"
         }
-        return "";
-    };
+        return ""
+    }
 
+    const convertToYesNo = normalizeYesNo
+
+    // Helper to normalize follow-up duration strings (e.g., "3-month" to "3month")
     const normalizeFollowUpDuration = (duration) => {
-        if (!duration) {
-            console.warn("follow_up_duration is null or undefined, defaulting to '3-month'");
-            return "3-month";
-        }
+        if (!duration) return "3month"; // Default to 3month if not specified
 
-        const cleaned = String(duration).toLowerCase().replace(/\s+/g, "-");
-        if (cleaned === "3-month" || cleaned === "3month") {
-            return "3-month";
-        }
-        if (cleaned === "6-month" || cleaned === "6month") {
-            return "6-month";
-        }
+        // Convert to lowercase and remove hyphens
+        const cleaned = String(duration).toLowerCase().replace(/-/g, '');
 
-        console.warn(`Unexpected follow_up_duration value: ${duration}, defaulting to '3-month'`);
-        return "3-month";
+        // Only allow "3month" or "6month" as valid values
+        return cleaned === "6month" ? "6month" : "3month";
     };
 
     const loadPatientRecords = async () => {
         try {
-            setLoading(true);
-            setError(null);
-            const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
-            const doctorId = currentUser?.id || "";
-            const doctorEmail = currentUser?.email || "unknown@doctor.com";
+            setLoading(true)
+            setError(null)
+            const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}")
+            const doctorId = currentUser?.id || ""
+            const doctorEmail = currentUser?.email || "unknown@doctor.com"
 
             if (!doctorId) {
-                throw new Error("Doctor ID not found in user info");
+                throw new Error("Doctor ID not found in user info")
             }
 
             const records = await apiGet("patient", {
                 doctor_id: doctorId,
                 doctor_email: doctorEmail,
-            });
+            })
 
-            const patientRecords = Array.isArray(records.patients)
-                ? records.patients
-                : Array.isArray(records)
-                    ? records
-                    : [];
+            const patientRecords = Array.isArray(records.patients) ? records.patients : Array.isArray(records) ? records : []
 
             if (patientRecords.length === 0) {
-                console.warn("No patient records found for doctor ID:", doctorId);
-                setDoctorData([]);
-                localStorage.removeItem("patientRecords");
-                return;
+                console.warn("No patient records found for doctor ID:", doctorId)
+                setDoctorData([])
+                localStorage.removeItem("patientRecords")
+                return
             }
 
-            console.log("API patient records (raw):", patientRecords);
-            console.log(
-                "API patient records (summary):",
-                patientRecords.map((r) => ({
-                    id: r.id || r.patient_id,
-                    patient_name: r.patient_name,
-                    follow_up_duration: r.follow_up_duration,
-                    hasUlcer: r.hasUlcer,
-                    hasAmputation: r.hasAmputation,
-                    possible_alt_keys: {
-                        followUpDuration: r.followUpDuration,
-                        followup_duration: r.followup_duration,
-                        followupDuration: r.followupDuration,
-                    },
-                }))
-            );
-
-            const localRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]");
+            const localRecords = JSON.parse(localStorage.getItem("patientRecords") || "[]")
 
             const filteredRecords = patientRecords.filter(
-                (record) => record.doctor_id === doctorId || record.doctor_email === doctorEmail
-            );
+                (record) => record.doctor_id === doctorId || record.doctor_email === doctorEmail,
+            )
 
             const mappedRecords = filteredRecords.map((record, index) => {
-                const rawDuration =
-                    record.follow_up_duration ||
-                    record.followUpDuration ||
-                    record.followup_duration ||
-                    record.followupDuration;
-                const followUpDuration = normalizeFollowUpDuration(rawDuration);
-                console.log(
-                    `Patient ${record.id || record.patient_id}: follow_up_duration=${rawDuration}, normalized=${followUpDuration}`
-                );
+                const followUpDuration = normalizeFollowUpDuration(record.follow_up_duration || "3-month");
+                const submissionDate = new Date(record.submission_date || record.created_at || new Date().toISOString())
+                const lastFollowUpDate = record.last_follow_up_date ? new Date(record.last_follow_up_date) : null
 
-                const submissionDate = new Date(record.submission_date || record.created_at || new Date().toISOString());
-                const lastFollowUpDate = record.last_follow_up_date ? new Date(record.last_follow_up_date) : null;
+                // Get and normalize the follow-up duration directly from the API record
+                const apiFollowUpDuration = normalizeFollowUpDuration(record.follow_up_duration || "3-month")
 
-                const specificDueDate = new Date(submissionDate);
-                if (followUpDuration === "6-month") {
-                    specificDueDate.setMinutes(specificDueDate.getMinutes() + 3); // TESTING
-                    // specificDueDate.setMonth(specificDueDate.getMonth() + 6); // PRODUCTION
+                // Calculate the specific due date based on the API's followUpDuration
+                const specificDueDate = new Date(submissionDate)
+                if (apiFollowUpDuration === "6month") {
+                    specificDueDate.setMinutes(specificDueDate.getMinutes() + 3) // TESTING: 3 minutes
+                    // PRODUCTION: specificDueDate.setMonth(specificDueDate.getMonth() + 6);
                 } else {
-                    specificDueDate.setMinutes(specificDueDate.getMinutes() + 2); // TESTING
-                    // specificDueDate.setMonth(specificDueDate.getMonth() + 3); // PRODUCTION
+                    // Defaults to 3month
+                    specificDueDate.setMinutes(specificDueDate.getMinutes() + 2) // TESTING: 2 minutes
+                    // PRODUCTION: specificDueDate.setMonth(specificDueDate.getMonth() + 3);
                 }
 
-                const now = new Date();
-                let currentFollowUpStatus = "Pending";
+                const now = new Date()
+                let currentFollowUpStatus = "Pending" // Default status
+
+                // Determine the current follow-up status
                 if (record.follow_up_status === "Completed") {
-                    currentFollowUpStatus = "Completed";
+                    currentFollowUpStatus = "Completed"
                 } else if (now >= specificDueDate) {
-                    currentFollowUpStatus = "Due";
+                    currentFollowUpStatus = "Due"
+                } else {
+                    currentFollowUpStatus = "Pending"
                 }
 
+                // Map all boolean fields consistently
                 const booleanFields = [
                     "hasUlcer",
                     "hasAmputation",
@@ -190,7 +166,7 @@ const UserDashboard = () => {
                     "limbIschemia",
                     "necrosis",
                     "gangrene",
-                  
+                    "probetobone",
                     "osteomyelitis",
                     "sepsis",
                     "arterialIssues",
@@ -211,14 +187,15 @@ const UserDashboard = () => {
                     "footDeformities",
                     "hairGrowth",
                     "pulsesPalpable",
-                ];
+                ]
 
-                const normalizedRecord = { ...record };
+                // Create a normalized record with consistent boolean values
+                const normalizedRecord = { ...record }
                 booleanFields.forEach((field) => {
                     if (field in record) {
-                        normalizedRecord[field] = normalizeYesNo(record[field]);
+                        normalizedRecord[field] = normalizeYesNo(record[field])
                     }
-                });
+                })
 
                 return {
                     sNo: index + 1,
@@ -226,7 +203,7 @@ const UserDashboard = () => {
                     patient_name: record.patient_name || record.name || "Unknown",
                     appointmentDate: record.appointment_date || record.created_at || new Date().toISOString(),
                     diagnosis: record.diagnosis || "N/A",
-                    status: record.status || "Completed",
+                    status: record.status || "Completed", // This 'status' seems to be for the initial assessment
                     lastVisit: record.last_visit || record.updated_at || new Date().toISOString(),
                     submissionDate: submissionDate.toISOString(),
                     canEdit: !is24HoursPassed(submissionDate.toISOString()),
@@ -237,73 +214,56 @@ const UserDashboard = () => {
                     followUpData:
                         localRecords.find((lr) => lr.patientId === (record.id || record.patient_id))?.followUpData || null,
                     originalRecord: normalizedRecord,
-                    follow_up_status: currentFollowUpStatus,
-                    followUpDueDate: specificDueDate.toISOString(),
-                };
-            });
+                    // Directly use the API's followUpDuration and the calculated status
+                    followUpDuration: apiFollowUpDuration, // This is the key change: directly use the API's duration
+                    follow_up_status: currentFollowUpStatus, // Use the calculated status
+                    followUpDueDate: specificDueDate.toISOString(), // The specific due date for this patient's type
+                }
+            })
 
-            mappedRecords.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+            // Sort by most recent submission first
+            mappedRecords.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate))
+
+            // Reassign serial numbers based on new order
             const finalRecords = mappedRecords.map((record, index) => ({
                 ...record,
                 sNo: index + 1,
-            }));
+            }))
 
-            setDoctorData(finalRecords);
+            setDoctorData(finalRecords)
         } catch (error) {
-            console.error("Error fetching patient records:", error);
-            toast.error("Failed to load patient records: " + error.message);
-            setError("Failed to load patient records. Please try again.");
-            setDoctorData([]);
-            localStorage.removeItem("patientRecords");
+            console.error("Error fetching patient records:", error)
+            toast.error("Failed to load patient records: " + error.message)
+            setError("Failed to load patient records. Please try again.")
+            setDoctorData([])
+            localStorage.removeItem("patientRecords")
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     const handleClearLocalStorage = () => {
-        localStorage.removeItem("patientRecords");
-        toast.info("Reloading records...");
-        loadPatientRecords();
-    };
+        localStorage.removeItem("patientRecords")
+        toast.info("Reloading records...")
+        loadPatientRecords()
+    }
 
     useEffect(() => {
-        loadPatientRecords();
-    }, []);
+        handleClearLocalStorage()
+    }, [])
 
-    const handleEdit = (row) => {
-        try {
-            console.log(`Editing patient ${row.patientId}:`, row.originalRecord);
-            localStorage.setItem("stepFormData", JSON.stringify(row.originalRecord));
-            navigate("/user/survey", {
-                state: {
-                    isUpdate: true,
-                    initialData: {
-                        patientId: row.patientId,
-                        patient_name: row.patient_name,
-                        followUpDuration: row.followUpDuration,
-                        doctor_id: row.doctor_id,
-                        doctor_email: row.doctor_email,
-                        ...row.originalRecord,
-                    },
-                },
-            });
-        } catch (error) {
-            console.error("Error navigating to edit form:", error);
-            toast.error("Failed to open edit form");
-        }
-    };
+    useEffect(() => {
+        loadPatientRecords()
+    }, [])
 
     const handleSubmitFollowUp = (patient) => {
         try {
-            setIsSaving(true);
-            const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
-            const followUpDuration = patient.followUpDuration;
+            setIsSaving(true)
+            const currentUser = JSON.parse(sessionStorage.getItem("userInfo") || "{}")
+            // Use the already determined followUpDuration from the patient object
+            const followUpDuration = patient.followUpDuration
 
-            console.log(`Navigating for patient ${patient.patientId}: followUpDuration=${followUpDuration}`);
-
-            const followUpRoute = followUpDuration === "6-month" ? "followup-6month" : "followup";
-
-            navigate(`/user/${followUpRoute}/${patient.patientId}`, {
+            navigate(`/user/${followUpDuration === "3month" ? "followup" : "followup-6month"}/${patient.patientId}`, {
                 state: {
                     initialData: {
                         patientId: patient.patientId,
@@ -312,81 +272,87 @@ const UserDashboard = () => {
                         doctor_email: currentUser?.email || "unknown@doctor.com",
                         lastFollowUpDate: patient.lastFollowUpDate,
                         followUpData: patient.followUpData || null,
-                        followUpDuration: followUpDuration,
+                        followUpDuration: followUpDuration, // Pass the correct duration
                     },
                     isInitialFollowUp: !patient.followUpData,
                     isUpdate: !!patient.followUpData,
                 },
-            });
+            })
         } catch (error) {
-            console.error("Error navigating to follow-up form:", error);
-            toast.error("Failed to open follow-up form");
+            console.error("Error navigating to follow-up form:", error)
+            toast.error("Failed to open follow-up form")
         } finally {
-            setIsSaving(false);
+            setIsSaving(false)
         }
-    };
+    }
 
     const handleFileUpload = (event) => {
-        const newFile = event.target.files[0];
-        setUploadedFiles((prevFiles) => [...prevFiles, newFile]);
-    };
+        const newFile = event.target.files[0]
+        setUploadedFiles((prevFiles) => [...prevFiles, newFile])
+    }
 
     const handleRemoveFile = (index) => {
-        setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-    };
+        setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+    }
 
     const handleSaveForLater = async () => {
-        setIsSaving(true);
+        setIsSaving(true)
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success("Saved for later!");
-            setShowUploadPopup(false);
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            toast.success("Saved for later!")
+            setShowUploadPopup(false)
         } catch (error) {
-            toast.error("Failed to save for later");
+            toast.error("Failed to save for later")
         } finally {
-            setIsSaving(false);
+            setIsSaving(false)
         }
-    };
+    }
 
     const handleUploadComplete = async () => {
-        setIsSaving(true);
+        setIsSaving(true)
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success("Consent form saved successfully!");
-            setTimeout(() => setShowUploadPopup(false), 1000);
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            toast.success("Concern form saved successfully!")
+            setTimeout(() => setShowUploadPopup(false), 1000)
         } catch (error) {
-            toast.error("Upload failed!");
+            toast.error("Upload failed!")
         } finally {
-            setIsSaving(false);
+            setIsSaving(false)
         }
-    };
+    }
 
     const handleDownloadForm = () => {
-        const link = document.createElement("a");
-        link.href = "/Consent_form_registry.pdf";
-        link.download = "Diabetes_Foot_Ulcer_Consent_Form.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
+        const link = document.createElement("a")
+        link.href = "/Consent_form_registry.pdf"
+        link.download = "Diabetes_Foot_Ulcer_Consent_Form.pdf"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 
     const updatePatientStatus = (patientId, status, additionalData = {}) => {
         const updatedData = doctorData.map((patient) =>
-            patient.patientId === patientId ? { ...patient, status, ...additionalData } : patient
-        );
-        setDoctorData(updatedData);
-        localStorage.setItem("patientRecords", JSON.stringify(updatedData));
-        toast.success(`Patient ${patientId} status updated to ${status}`);
-    };
+            patient.patientId === patientId ? { ...patient, status, ...additionalData } : patient,
+        )
+        setDoctorData(updatedData)
+        localStorage.setItem("patientRecords", JSON.stringify(updatedData))
+        toast.success(`Patient ${patientId} status updated to ${status}`)
+    }
+
+    const handleEdit = (row) => {
+        setCurrentPatient(row)
+        setUploadedFiles([])
+        setShowUploadPopup(true)
+    }
 
     const handleCloseModal = () => {
-        setUploadedFiles([]);
-        setShowUploadPopup(false);
-    };
+        setUploadedFiles([])
+        setShowUploadPopup(false)
+    }
 
     const handleRefresh = () => {
-        loadPatientRecords();
-    };
+        loadPatientRecords()
+    }
 
     const columns = [
         {
@@ -436,24 +402,17 @@ const UserDashboard = () => {
             header: "Actions",
             sortable: false,
             render: (_, row, externalProps) => {
-                const submissionDate = row.submissionDate;
-                const canEdit = !is24HoursPassed(submissionDate);
-                const { currentTime } = externalProps || {};
-                const remainingTime = canEdit ? calculateRemainingTime(submissionDate, currentTime) : null;
+                const submissionDate = row.submissionDate
+                const canEdit = !is24HoursPassed(submissionDate)
+                const { currentTime } = externalProps || {}
+                const remainingTime = canEdit ? calculateRemainingTime(submissionDate, currentTime) : null
 
                 return (
                     <div className="action-buttons">
                         <div className="main-assessment-actions">
                             {canEdit && remainingTime ? (
                                 <>
-                                    <a
-                                        className="action-btn edit-btn"
-                                        onClick={() => {
-                                            console.log("Edit button clicked for patient:", row.patientId);
-                                            handleEdit(row);
-                                        }}
-                                        title="Edit assessment"
-                                    >
+                                    <a className="action-btn edit-btn" onClick={() => handleStepForm(row, true)} title="Edit assessment">
                                         <FilePenLine size={16} />
                                     </a>
                                     <div className="edit-countdown">
@@ -468,7 +427,7 @@ const UserDashboard = () => {
                             )}
                         </div>
                     </div>
-                );
+                )
             },
         },
         {
@@ -476,29 +435,30 @@ const UserDashboard = () => {
             header: "Follow Up",
             sortable: true,
             render: (_, row) => {
-                const { followUpDuration, follow_up_status, followUpDueDate, lastFollowUpDate } = row;
-                const displayDueDate = followUpDueDate ? new Date(followUpDueDate) : null;
+                // Directly use the properties from the row object, which are now correctly set in loadPatientRecords
+                const { followUpDuration, follow_up_status, followUpDueDate, lastFollowUpDate } = row
+                const displayDueDate = followUpDueDate ? new Date(followUpDueDate) : null
 
                 const handleClick = () => {
                     if (follow_up_status === "Due") {
-                        console.log(`Clicked Follow-up Due for patient ${row.patientId}: followUpDuration=${followUpDuration}`);
-                        handleSubmitFollowUp(row);
+                        // Use followUpDuration directly for navigation
+                        handleSubmitFollowUp(row)
                     } else if (follow_up_status === "Pending") {
                         toast.info(
-                            `${followUpDuration} follow-up available on ${displayDueDate ? formatToDDMMYYYY(displayDueDate) : "N/A"}`
-                        );
+                            `${followUpDuration === "3month" ? "3-month" : "6-month"} follow-up available on ${displayDueDate ? formatToDDMMYYYY(displayDueDate) : "N/A"}`,
+                        )
                     }
-                };
+                }
 
-                let statusText = "";
-                const statusClass = follow_up_status.toLowerCase();
+                let statusText = ""
+                const statusClass = follow_up_status.toLowerCase()
 
                 if (follow_up_status === "Pending") {
-                    statusText = ` Pending`;
+                    statusText = `Follow-up Pending`
                 } else if (follow_up_status === "Due") {
-                    statusText = ` Due`;
+                    statusText = `Follow-up Due`
                 } else if (follow_up_status === "Completed") {
-                    statusText = ` Completed`;
+                    statusText = `Follow-up Completed`
                 }
 
                 return (
@@ -508,14 +468,17 @@ const UserDashboard = () => {
                             onClick={follow_up_status !== "Completed" ? handleClick : undefined}
                             title={
                                 follow_up_status === "Due"
-                                    ? `Click to submit ${followUpDuration} follow-up`
+                                    ? `Click to submit ${followUpDuration === "3month" ? "3-month" : "6-month"} follow-up`
                                     : follow_up_status === "Pending"
-                                        ? `${followUpDuration} follow-up available on ${displayDueDate ? formatToDDMMYYYY(displayDueDate) : "N/A"}`
+                                        ? `${followUpDuration === "3month" ? "3-month" : "6-month"} follow-up available on ${displayDueDate ? formatToDDMMYYYY(displayDueDate) : "N/A"}`
                                         : "All follow-ups completed"
                             }
                         >
                             <span className={`follow-up-status ${statusClass}`}>
-                                {statusText} <small>({followUpDuration})</small>
+                                {statusText}
+                                <br />
+                                {/* Display the correct duration type */}
+                                <small>({followUpDuration === "3month" ? "3-month" : "6-month"})</small>
                             </span>
                         </div>
 
@@ -533,25 +496,25 @@ const UserDashboard = () => {
                             </small>
                         )}
                     </div>
-                );
+                )
             },
         },
-    ];
+    ]
 
     const handleAddNew = () => {
-        localStorage.removeItem("stepFormData");
+        localStorage.removeItem("stepFormData")
         navigate("/user/survey", {
             state: {
                 isUpdate: false,
                 initialData: null,
             },
-        });
-    };
+        })
+    }
 
     return (
         <UserLayout>
             <div className="doctor-dashboard">
-                <MessageBanner message="Your Previous data is safe. We're fixing a backend issue, and it will reappear soon. You can continue submitting." />
+                <MessageBanner message=" Your Previous data is safe. We're fixing a backend issue, and it will reappear soon. You can continue submitting." />
 
                 <div className="dashboard-controls"></div>
                 {loading ? (
@@ -611,7 +574,7 @@ const UserDashboard = () => {
                 )}
             </div>
         </UserLayout>
-    );
-};
+    )
+}
 
-export default UserDashboard;
+export default UserDashboard
