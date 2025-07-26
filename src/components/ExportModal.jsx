@@ -26,7 +26,6 @@ const ExportModal = ({
         ageRange: "",
     })
 
-    // Validate fields based on available data
     const validateFields = () => {
         const newErrors = {
             dateRange: "",
@@ -34,21 +33,19 @@ const ExportModal = ({
         }
         let isValid = true
 
-        // Validate date range if date field exists
-        const hasDateField = data.some((item) => item.date)
-        if (hasDateField) {
-            if (!dateRange[0] || !dateRange[1]) {
-                newErrors.dateRange = "Both start and end dates are required"
-                isValid = false
-            } else if (dateRange[0] > dateRange[1]) {
+        // Validate date range
+        if (dateRange[0] && dateRange[1]) {
+            if (dateRange[0] > dateRange[1]) {
                 newErrors.dateRange = "End date must be after start date"
                 isValid = false
             }
+        } else {
+            newErrors.dateRange = "Both dates are required"
+            isValid = false
         }
 
-        // Validate age range if age field exists
-        const hasAgeField = data.some((item) => item.age)
-        if (hasAgeField) {
+        // Validate age range
+        if (ageRange.min || ageRange.max) {
             if (!ageRange.min || !ageRange.max) {
                 newErrors.ageRange = "Both min and max ages are required"
                 isValid = false
@@ -71,15 +68,17 @@ const ExportModal = ({
             return
         }
 
-        // Adjust the end date to the end of the day to ensure inclusivity
-        const adjustedDateRange =
-            dateRange[0] && dateRange[1] ? [dateRange[0], moment(dateRange[1]).endOf("day")] : dateRange
-
-        // Hardcode format to xlsx since only Excel is supported
-        onExport({ format: "xlsx", gender, ageRange, dateRange: adjustedDateRange })
+        // Pass exact dates without time adjustments
+        onExport({
+            format: "xlsx",
+            gender,
+            ageRange,
+            dateRange: [dateRange[0].toDate(), dateRange[1].toDate()]
+        })
     }
 
     if (!isOpen) return null
+
 
     return (
         <div className="modal-overlay">

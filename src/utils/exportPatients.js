@@ -34,11 +34,27 @@ export const handleExport = async (filters, exportFileName, setShowExportModal) 
       });
     }
 
+    // Strict date range filtering
     if (filters.dateRange?.[0] && filters.dateRange?.[1]) {
-      const [start, end] = filters.dateRange;
+      const [startDate, endDate] = filters.dateRange;
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
       filteredData = filteredData.filter((p) => {
-        const date = new Date(p.submission_date || p.created_at);
-        return date >= start && date <= end;
+        const dateString = p.submission_date || p.created_at;
+        if (!dateString) return false;
+
+        const recordDate = new Date(dateString);
+        if (isNaN(recordDate.getTime())) return false;
+
+        return recordDate >= start && recordDate <= end;
+      });
+
+      // Sort by date (ascending - oldest first)
+      filteredData.sort((a, b) => {
+        const dateA = new Date(a.submission_date || a.created_at);
+        const dateB = new Date(b.submission_date || b.created_at);
+        return dateA - dateB;
       });
     }
 
@@ -57,43 +73,52 @@ export const handleExport = async (filters, exportFileName, setShowExportModal) 
     // 4. Prepare header row (column names)
     const headerRow = allFields;
 
-    // 5. Prepare data rows - each row has all fields, show "NaN" if missing
+    // 5. Prepare data rows with special handling for dates
     const dataRows = filteredData.map((patient) =>
       allFields.map((field) => {
         let value = patient[field];
-        if (value === null || value === undefined) return "NaN"; // Changed from "" to "NaN"
-        if (typeof value === "object") return JSON.stringify(value); // stringify nested objects/arrays
-        
-        // Convert all possible boolean/indicator values to yes/no
+
+        // Handle date fields
+        if (field.toLowerCase().includes('date') && value) {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+          }
+          return "NaN";
+        }
+
+        // Original value handling
+        if (value === null || value === undefined) return "NaN";
+        if (typeof value === "object") return JSON.stringify(value);
+
         if (typeof value === 'string') {
           value = value.toLowerCase().trim();
         }
-        
-        // Handle all possible truthy/falsy cases
+
         if (
-          value === false || 
-          value === 0 || 
-          value === 'false' || 
-          value === '0' || 
+          value === false ||
+          value === 0 ||
+          value === 'false' ||
+          value === '0' ||
           value === 'no' ||
           value === 'off' ||
           value === 'disabled'
         ) {
           return 'no';
         }
-        
+
         if (
-          value === true || 
-          value === 1 || 
-          value === 'true' || 
-          value === '1' || 
+          value === true ||
+          value === 1 ||
+          value === 'true' ||
+          value === '1' ||
           value === 'yes' ||
           value === 'on' ||
           value === 'enabled'
         ) {
           return 'yes';
         }
-        
+
         return value;
       })
     );
@@ -105,10 +130,19 @@ export const handleExport = async (filters, exportFileName, setShowExportModal) 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(worksheetData);
 
-    // 8. Optional: set column widths based on header length
-    ws["!cols"] = allFields.map((field) => ({
-      wch: Math.min(50, Math.max(10, field.length)),
-    }));
+    // 8. Set column widths and date formatting
+    ws["!cols"] = allFields.map((field) => {
+      if (field.toLowerCase().includes('date')) {
+        return {
+          wch: 12,
+          numFmt: 'dd-mm-yyyy' // Excel date format
+         
+        };
+      }
+      return {
+        wch: Math.min(50, Math.max(10, field.length))
+      };
+    });
 
     // 9. Append worksheet and export file
     XLSX.utils.book_append_sheet(wb, ws, "Patients");
