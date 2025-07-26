@@ -23,6 +23,22 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
         amputation: false,
         angioplasty: false,
     })
+    const [isDragging, setIsDragging] = useState(false);
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+    const handleDragLeave = () => {
+        setIsDragging(false);
+    };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            processConsentUpload(file);
+        }
+    };
     const fileInputRef = useRef(null) // Add ref for file input
     // Get current doctor from Redux store
     const currentDoctor = useSelector(selectCurrentUser)
@@ -109,79 +125,69 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
                 toast.error("Failed to download consent form. File not found.");
             });
     };
-      
 
-    const handleRemoveConsent = () => {
-        if (formData.section1.consentFormPreview && formData.section1.consentFormPreview.startsWith('blob:')) {
-            URL.revokeObjectURL(formData.section1.consentFormPreview)
+
+
+    const handleClickUpload = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileInputChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            processConsentUpload(file);
         }
+    };
 
-        // Clear form data
-        handleChange({ target: { name: "consentForm", value: null } }, "section1")
-        handleChange({ target: { name: "consentFormPreview", value: null } }, "section1")
-        handleChange({ target: { name: "consentFormName", value: null } }, "section1")
-        handleChange({ target: { name: "consentUploaded", value: false } }, "section1")
-        handleChange({ target: { name: "consentVerified", value: false } }, "section1")
+    const processConsentUpload = (file) => {
+        // Clear previous error
+        setErrors(prev => ({ ...prev, consentForm: null }));
 
-        // Reset file input
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""
-        }
-
-        console.log("After Remove Consent:", formData.section1)
-    }
-
-    const handleConsentUpload = (e) => {
-        const file = e.target.files[0]
-        if (!file) return
-
-        // Clear previous errors
-        setErrors(prev => ({ ...prev, consentForm: null }))
-
-        // Validate file
-        let error = null
+        let error = null;
         if (file.size > 2 * 1024 * 1024) {
-            error = 'File exceeds 2MB limit'
+            error = 'File exceeds 2MB limit';
         } else if (file.type !== 'application/pdf') {
-            error = 'Only PDF files are allowed'
+            error = 'Only PDF files are allowed';
         }
 
         if (error) {
-            setErrors(prev => ({ ...prev, consentForm: error }))
-            return
+            setErrors(prev => ({ ...prev, consentForm: error }));
+            return;
         }
 
-        // Use PDF icon for preview
-        const previewUrl = '/pdf-icon.png'
+        const previewUrl = '/pdf-icon.png';
 
-        // Update form data, overwriting any existing consentForm (string or File)
-        handleChange(
-            { target: { name: "consentForm", value: file } },
-            "section1"
-        )
-        handleChange(
-            { target: { name: "consentFormPreview", value: previewUrl } },
-            "section1"
-        )
-        handleChange(
-            { target: { name: "consentFormName", value: file.name } },
-            "section1"
-        )
-        handleChange(
-            { target: { name: "consentUploaded", value: true } },
-            "section1"
-        )
-        handleChange(
-            { target: { name: "consentVerified", value: false } },
-            "section1"
-        )
+        handleChange({ target: { name: "consentForm", value: file } }, "section1");
+        handleChange({ target: { name: "consentFormPreview", value: previewUrl } }, "section1");
+        handleChange({ target: { name: "consentFormName", value: file.name } }, "section1");
+        handleChange({ target: { name: "consentUploaded", value: true } }, "section1");
+        handleChange({ target: { name: "consentVerified", value: false } }, "section1");
 
         console.log("After Upload Consent:", {
             consentForm: file,
             consentFormName: file.name,
             consentFormPreview: previewUrl
-        })
-    }
+        });
+    };
+
+    const handleRemoveConsent = () => {
+        if (formData.section1.consentFormPreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(formData.section1.consentFormPreview);
+        }
+
+        handleChange({ target: { name: "consentForm", value: null } }, "section1");
+        handleChange({ target: { name: "consentFormPreview", value: null } }, "section1");
+        handleChange({ target: { name: "consentFormName", value: null } }, "section1");
+        handleChange({ target: { name: "consentUploaded", value: false } }, "section1");
+        handleChange({ target: { name: "consentVerified", value: false } }, "section1");
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+
+        console.log("After Remove Consent:", formData.section1);
+    };
+
 
 
     console.log("hasUlcer value:", formData.section1.hasUlcer);
@@ -223,23 +229,34 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
 
                         {/* Upload Column */}
                         <div className="medical-add-group medical-add-uplaod-column" style={{ flex: 1 }}>
-                            <div className={`consent-upload-box ${errors.consentForm ? 'upload-error' : ''}`} >
+                            <div className={`consent-upload-box ${errors.consentForm ? 'upload-error' : ''} ${isDragging ? 'drag-over' : ''} ${formData.section1.consentForm ? 'active' : ''}`} >
+
+
                                 <h3 className="consent-subtitle">Upload Signed Consent</h3>
-                                <div className="upload-content">
+
+                                <div
+                                    className={`upload-content ${isDragging ? 'drag-over' : ''}`}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={handleClickUpload}
+                                >
                                     <input
                                         type="file"
                                         id="consentUpload"
                                         accept=".pdf"
-                                        onChange={handleConsentUpload}
+                                        ref={fileInputRef}
+                                        onChange={handleFileInputChange}
                                         className="upload-input"
                                         style={{ display: 'none' }}
                                     />
+
                                     <label htmlFor="consentUpload" className="upload-label">
                                         <FiUploadCloud className="upload-icon" />
                                         <p className="upload-instructions">
                                             {formData.section1.consentForm
                                                 ? `File uploaded: ${formData.section1.consentFormName || 'consent_form.pdf'}`
-                                                : 'Click to upload signed PDF (Max 2MB)'}
+                                                : 'Drag & drop or click to upload signed PDF (Max 2MB)'}
                                         </p>
 
                                         {formData.section1.consentForm && (
@@ -258,6 +275,7 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
                                         )}
                                     </label>
                                 </div>
+
                                 {errors.consentForm && (
                                     <div className="upload-error-message">
                                         <FiAlertCircle className="error-icon" />

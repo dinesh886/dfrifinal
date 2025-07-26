@@ -1356,9 +1356,9 @@ body {
 .consent-verification {
   margin-top: 20px;
   padding: 15px;
-  background: #f6ffed;
+  background: #f6fffa;
   border-radius: 6px;
-  border: 1px solid #b7eb8f;
+  border: 1px solid var(--primary-color);
 }
 
 .verification-label {
@@ -1675,4 +1675,17 @@ body {
 }
 .mt{
   margin-top: 7px;
+}
+
+.consent-upload-box.drag-over {
+  border: 2px dashed #1e90ff;
+  background-color: #f0f8ff;
+  box-shadow: 0 0 10px rgba(30, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+.consent-upload-box.active {
+  border: 2px dashed var(--primary-color);
+  /* green border for success */
+  background-color: #f6fffa;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.2);
 }
