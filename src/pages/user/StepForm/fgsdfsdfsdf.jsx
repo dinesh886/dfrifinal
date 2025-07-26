@@ -514,7 +514,7 @@ const UserDashboard = () => {
     return (
         <UserLayout>
             <div className="doctor-dashboard">
-                <MessageBanner message=" Your Previous data is safe. We're fixing a backend issue, and it will reappear soon. You can continue submitting." />
+                {/* <MessageBanner message=" Your Previous data is safe. We're fixing a backend issue, and it will reappear soon. You can continue submitting." /> */}
 
                 <div className="dashboard-controls"></div>
                 {loading ? (

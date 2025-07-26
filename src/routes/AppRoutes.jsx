@@ -69,8 +69,6 @@ const AppRoutes = () => {
                     element={<ViewAssessment />}
                 /> */}
               
-
-                
             </Route>    
 
             {/* Fallback Redirects */}

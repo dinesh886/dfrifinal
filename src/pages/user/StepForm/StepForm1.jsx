@@ -1076,7 +1076,8 @@ const StepForm1 = ({ formData, handleChange, errors, setErrors }) => {
                                 options: [
                                     { value: "indoor", label: "Indoor" },
                                     { value: "outdoor", label: "Outdoor" },
-                                    { value: "both", label: "Both" }
+                                    { value: "both", label: "Both" },
+                                    { value: "No", label: "No" }
                                 ]
                             },
                             {
